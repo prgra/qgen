@@ -23,7 +23,7 @@ func WriteToFile(g Generator, db *sqlx.DB) error {
 		return err
 	}
 	for i := range r {
-		_, err = f.Write([]byte(r[i] + "\n"))
+		_, err = f.Write([]byte(r[i] + "\r"))
 	}
 	return err
 }

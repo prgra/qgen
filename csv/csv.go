@@ -18,7 +18,7 @@ func makeHeader(r interface{}, delim, sdelim string) []byte {
 			fn = sf.Name
 		}
 		if fn != "-" {
-			fields = append(fields, `"`+fn+`"`)
+			fields = append(fields, sdelim+fn+sdelim)
 		}
 	}
 	return []byte(strings.Join(fields, delim))
