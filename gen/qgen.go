@@ -3,6 +3,8 @@ package gen
 import (
 	"fmt"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -13,7 +15,15 @@ type Generator interface {
 }
 
 func WriteToFile(g Generator, db *sqlx.DB) error {
-	f, err := os.Create(g.GetFileName())
+	p, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	ouf := p + "/" + os.Getenv("QGEN_PATH") + "/" + g.GetFileName()
+	if strings.HasPrefix(os.Getenv("QGEN_PATH"), "/") {
+		ouf = os.Getenv("QGEN_PATH") + "/" + g.GetFileName()
+	}
+	f, err := os.Create(path.Clean(ouf))
 	if err != nil {
 		return err
 	}
