@@ -43,7 +43,7 @@ type AbonRow struct {
 	Status               int            `db:"disdel" csv:"STATUS"`                             // STATUS
 	Attach               string         `db:"-" csv:"ATTACH"`                                  // ATTACH
 	Detach               string         `db:"-" csv:"DETACH"`                                  // DETACH
-	NetworkType          string         `db:"-" csv:"NETWORK_TYPE"`                            // NETWORK_TYPE
+	NetworkType          int            `db:"-" csv:"NETWORK_TYPE"`                            // NETWORK_TYPE
 	RecordAction         string         `db:"-" csv:"RECORD_ACTION"`                           // RECORD_ACTION
 	InternalID1          string         `db:"uid" csv:"INTERNAL_ID1"`                          // INTERNAL_ID1
 }
@@ -56,7 +56,7 @@ pi.contract_date,
 u.id,
 u.company_id,
 pi.fio,
-concat(pasport_num,pasport_date,pasport_grant) as passport,
+concat(pasport_num,' ',pasport_date,' ',pasport_grant) as passport,
 c.name as compname,
 u.disable+u.deleted as disdel
 from 
@@ -75,7 +75,7 @@ JOIN tarif_plans tp ON tp.id=dv.tp_id
 	for i := range abons {
 		abons[i].Calc()
 	}
-	r = csv.MarshalCSV(abons, ";", "")
+	r = csv.MarshalCSV(abons, ";", "\"")
 	return r, nil
 }
 
@@ -99,11 +99,5 @@ func (r *AbonRow) Calc() {
 	r.IdentCardTypeID = 1
 	r.IdentCardType = "Паспорт"
 	r.InternalID1 = fmt.Sprintf("%d", r.AbonID)
-	r.FIO = string([]rune(r.FIO))
-
-	// это лечит левую кодировку которую возвращает база mysql
-	r.IdentCardUnstruct = string([]rune(r.IdentCardUnstruct))
-	r.FullName.String = string([]rune(r.FullName.String))
-	r.PhoneFax = string([]rune(r.PhoneFax))
-
+	r.NetworkType = 4
 }

@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -23,7 +24,15 @@ func WriteToFile(g Generator, db *sqlx.DB) error {
 		return err
 	}
 	for i := range r {
-		_, err = f.Write([]byte(r[i] + "\r"))
+		// это лечит левую кодировку которую возвращает база mysql
+		s := string([]rune(r[i]))
+		n, err2 := f.Write([]byte(s + "\n"))
+		if err2 != nil {
+			return err2
+		}
+		if n != len(s)+1 {
+			return fmt.Errorf("short write")
+		}
 	}
 	return err
 }
