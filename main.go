@@ -36,4 +36,9 @@ func main() {
 		log.Println(err)
 		os.Exit(5)
 	}
+	err = gen.WriteToFile(&gen.Region{}, db)
+	if err != nil {
+		log.Println(err)
+		os.Exit(5)
+	}
 }
