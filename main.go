@@ -31,4 +31,9 @@ func main() {
 		log.Println(err)
 		os.Exit(4)
 	}
+	err = gen.WriteToFile(&gen.AbonAddr{}, db)
+	if err != nil {
+		log.Println(err)
+		os.Exit(5)
+	}
 }
