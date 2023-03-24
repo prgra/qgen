@@ -75,7 +75,7 @@ JOIN tarif_plans tp ON tp.id=dv.tp_id
 	for i := range abons {
 		abons[i].Calc()
 	}
-	r = csv.MarshalCSV(abons, ";", "\"")
+	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
 }
 

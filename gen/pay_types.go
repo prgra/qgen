@@ -37,7 +37,7 @@ func (a *PayTypes) Render(db *sqlx.DB) (r []string, err error) {
 		{ID: 110, Description: "Сбербанк карты"},
 	}
 
-	r = csv.MarshalCSV(tps, ";", "\"")
+	r = csv.MarshalCSV(tps, ";", "")
 	return r, nil
 }
 

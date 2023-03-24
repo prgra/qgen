@@ -25,7 +25,7 @@ func (a *Region) Render(db *sqlx.DB) (r []string, err error) {
 	if err != nil {
 		return nil, err
 	}
-	r = csv.MarshalCSV(regions, ";", "\"")
+	r = csv.MarshalCSV(regions, ";", "")
 	return r, nil
 }
 
