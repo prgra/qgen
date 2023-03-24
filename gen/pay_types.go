@@ -11,30 +11,30 @@ import (
 type PayTypes struct{}
 
 type PayTypeRow struct {
-	ID          int    `csv:"ID"`
-	BeginTime   string `csv:"BEGIN_TIME"`
-	EndTime     string `csv:"END_TIME"`
-	Description string `csv:"DESCRIPTION"`
-	RegionID    int    `csv:"REGION_ID"`
+	ID        int    `csv:"ID"`
+	BeginTime string `csv:"BEGIN_TIME"`
+	EndTime   string `csv:"END_TIME"`
+	Descr     string `csv:"DESCRIPTION"`
+	RegionID  int    `csv:"REGION_ID"`
 }
 
 func (a *PayTypes) Render(db *sqlx.DB) (r []string, err error) {
 	var tps = []PayTypeRow{
-		{ID: 0, Description: "Наличные"},
-		{ID: 1, Description: "Банк"},
-		{ID: 2, Description: "Внешние платежи"},
-		{ID: 3, Description: "Credit Card"},
-		{ID: 4, Description: "Бонус"},
-		{ID: 5, Description: "Корректировка"},
-		{ID: 6, Description: "Компенсация"},
-		{ID: 7, Description: "Перевод личных средств"},
-		{ID: 8, Description: "Пересчитать"},
-		{ID: 44, Description: "SberbankNew"},
-		{ID: 67, Description: "Sberbank"},
-		{ID: 68, Description: "РИРЦ"},
-		{ID: 101, Description: "РИРЦ кабельное"},
-		{ID: 102, Description: "РИРЦ Интернет"},
-		{ID: 110, Description: "Сбербанк карты"},
+		{ID: 0, Descr: "Наличные"},
+		{ID: 1, Descr: "Банк"},
+		{ID: 2, Descr: "Внешние платежи"},
+		{ID: 3, Descr: "Credit Card"},
+		{ID: 4, Descr: "Бонус"},
+		{ID: 5, Descr: "Корректировка"},
+		{ID: 6, Descr: "Компенсация"},
+		{ID: 7, Descr: "Перевод личных средств"},
+		{ID: 8, Descr: "Пересчитать"},
+		{ID: 44, Descr: "SberbankNew"},
+		{ID: 67, Descr: "Sberbank"},
+		{ID: 68, Descr: "РИРЦ"},
+		{ID: 101, Descr: "РИРЦ кабельное"},
+		{ID: 102, Descr: "РИРЦ Интернет"},
+		{ID: 110, Descr: "Сбербанк карты"},
 	}
 
 	r = csv.MarshalCSV(tps, ";", "")
