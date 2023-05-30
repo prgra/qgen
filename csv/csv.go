@@ -24,7 +24,7 @@ func makeHeader(r interface{}, delim, sdelim string) []byte {
 	return []byte(strings.Join(fields, delim))
 }
 
-func MarshalCSV(a any, delim, sdelim string) []string {
+func MarshalCSV(a interface{}, delim, sdelim string) []string {
 	var rs []string
 	for i := 0; i < reflect.ValueOf(a).Len(); i++ {
 		r := reflect.ValueOf(a).Index(i).Interface()

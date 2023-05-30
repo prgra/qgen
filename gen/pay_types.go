@@ -11,30 +11,30 @@ import (
 type PayTypes struct{}
 
 type PayTypeRow struct {
-	ID        int    `csv:"ID"`
-	BeginTime string `csv:"BEGIN_TIME"`
-	EndTime   string `csv:"END_TIME"`
-	Descr     string `csv:"DESCRIPTION"`
-	RegionID  int    `csv:"REGION_ID"`
+	ID        int       `csv:"ID"`
+	BeginTime time.Time `csv:"BEGIN_TIME" format:"2006-01-02"`
+	EndTime   time.Time `csv:"END_TIME"`
+	Descr     string    `csv:"DESCRIPTION"`
+	RegionID  int       `csv:"REGION_ID"`
 }
 
 func (a *PayTypes) Render(db *sqlx.DB) (r []string, err error) {
 	var tps = []PayTypeRow{
-		{ID: 0, Descr: "Наличные"},
-		{ID: 1, Descr: "Банк"},
-		{ID: 2, Descr: "Внешние платежи"},
-		{ID: 3, Descr: "Credit Card"},
-		{ID: 4, Descr: "Бонус"},
-		{ID: 5, Descr: "Корректировка"},
-		{ID: 6, Descr: "Компенсация"},
-		{ID: 7, Descr: "Перевод личных средств"},
-		{ID: 8, Descr: "Пересчитать"},
-		{ID: 44, Descr: "SberbankNew"},
-		{ID: 67, Descr: "Sberbank"},
-		{ID: 68, Descr: "РИРЦ"},
-		{ID: 101, Descr: "РИРЦ кабельное"},
-		{ID: 102, Descr: "РИРЦ Интернет"},
-		{ID: 110, Descr: "Сбербанк карты"},
+		{ID: 0, Descr: "Наличные", BeginTime: time.Unix(0, 0)},
+		{ID: 1, Descr: "Банк", BeginTime: time.Unix(0, 0)},
+		{ID: 2, Descr: "Внешние платежи", BeginTime: time.Unix(0, 0)},
+		{ID: 3, Descr: "Credit Card", BeginTime: time.Unix(0, 0)},
+		{ID: 4, Descr: "Бонус", BeginTime: time.Unix(0, 0)},
+		{ID: 5, Descr: "Корректировка", BeginTime: time.Unix(0, 0)},
+		{ID: 6, Descr: "Компенсация", BeginTime: time.Unix(0, 0)},
+		{ID: 7, Descr: "Перевод личных средств", BeginTime: time.Unix(0, 0)},
+		{ID: 8, Descr: "Пересчитать", BeginTime: time.Unix(0, 0)},
+		{ID: 44, Descr: "SberbankNew", BeginTime: time.Unix(0, 0)},
+		{ID: 67, Descr: "Sberbank", BeginTime: time.Unix(0, 0)},
+		{ID: 68, Descr: "РИРЦ", BeginTime: time.Unix(0, 0)},
+		{ID: 101, Descr: "РИРЦ кабельное", BeginTime: time.Unix(0, 0)},
+		{ID: 102, Descr: "РИРЦ Интернет", BeginTime: time.Unix(0, 0)},
+		{ID: 110, Descr: "Сбербанк карты", BeginTime: time.Unix(0, 0)},
 	}
 
 	r = csv.MarshalCSV(tps, ";", "")

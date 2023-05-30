@@ -69,7 +69,7 @@ func (a *AbonAddr) GetFileName() string {
 }
 
 func (a *AbonAddrRow) Calc() {
-	a.AddressTypeID = 4
+	a.AddressTypeID = 0
 	a.AddressType = 1
 	if a.City.Valid && a.Street.Valid {
 		a.UnstructInfo = fmt.Sprintf("%s %s %s %s", a.City.String, a.Street.String, a.Building.String, a.Apartment)

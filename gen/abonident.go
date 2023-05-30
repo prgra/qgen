@@ -3,6 +3,7 @@ package gen
 import (
 	"database/sql"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -72,6 +73,7 @@ pi.contract_date,
 u.id,
 pi.email,
 INET_NTOA(dv.ip) as ip,
+INET_NTOA(dv.netmask) as mask,
 dh.mac
 from 
 users u 
@@ -87,9 +89,9 @@ JOIN tarif_plans tp ON tp.id=dv.tp_id
 	if err != nil {
 		return nil, err
 	}
-	// for i := range abons {
-	// 	abons[i].Calc()
-	// }
+	for i := range abons {
+		abons[i].Calc()
+	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
 }
@@ -99,7 +101,36 @@ func (a *AbonIdent) GetFileName() string {
 }
 
 func (a *AbonIdentRow) Calc() {
+	a.RegionID.Valid = true
 	a.IdentType = 5
 	a.EquipmentType = 0
 	a.IPType = 0
+	a.MAC.String = MakeMac(a.MAC.String)
+	a.IPv4 = MakeIP(a.IPv4)
+	if a.IPv4 != "" {
+		a.IPv4Mask = MakeIP(a.IPv4Mask)
+	} else {
+		a.IPv4Mask = ""
+	}
+}
+
+// MakeMac - преобразует в строку вида 0A0B0C0D0E0F
+func MakeMac(mac string) string {
+	pm, err := net.ParseMAC(mac)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%0X", []byte(pm))
+}
+
+// MakeIP - преобразует в строку вида 0A0B0C0D
+func MakeIP(ip string) (hip string) {
+	if ip == "" || ip == "0.0.0.0" {
+		return ""
+	}
+	nip := net.ParseIP(ip)
+	if nip == nil {
+		return ""
+	}
+	return fmt.Sprintf("%0X", []byte(nip[12:]))
 }

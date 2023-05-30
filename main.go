@@ -16,10 +16,12 @@ func main() {
 		log.Println(err)
 		os.Exit(1)
 	}
-	_, err = db.Exec(fmt.Sprintf("SET NAMES %s", "latin1"))
-	if err != nil {
-		log.Println(err)
-		os.Exit(2)
+	if os.Getenv("QGEN_NAMES") != "" {
+		_, err = db.Exec(fmt.Sprintf("SET NAMES %s", os.Getenv("QGEN_NAMES")))
+		if err != nil {
+			log.Println(err)
+			os.Exit(2)
+		}
 	}
 	err = gen.WriteToFile(&gen.Abons{}, db)
 	if err != nil {
