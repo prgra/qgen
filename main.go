@@ -10,6 +10,11 @@ import (
 	"github.com/prgra/qgen/gen"
 )
 
+type Report struct {
+	G       gen.Generator
+	ErrCode int
+}
+
 func main() {
 	db, err := sqlx.Connect("mysql" /* driver name */, os.Getenv("QGEN_MYSQL") /* data source name */)
 	if err != nil {
@@ -23,29 +28,22 @@ func main() {
 			os.Exit(2)
 		}
 	}
-	err = gen.WriteToFile(&gen.Abons{}, db)
-	if err != nil {
-		log.Println(err)
-		os.Exit(3)
+	var reports = []Report{
+		{&gen.DocType{}, 1},
+		{&gen.Abons{}, 2},
+		{&gen.AbonIdent{}, 3},
+		{&gen.AbonAddr{}, 4},
+		{&gen.Region{}, 5},
+		{&gen.PayTypes{}, 6},
+		{&gen.Supplementary{}, 7},
+		{&gen.IPPlan{}, 8},
+		{&gen.GateWay{}, 9},
 	}
-	err = gen.WriteToFile(&gen.AbonIdent{}, db)
-	if err != nil {
-		log.Println(err)
-		os.Exit(4)
-	}
-	err = gen.WriteToFile(&gen.AbonAddr{}, db)
-	if err != nil {
-		log.Println(err)
-		os.Exit(5)
-	}
-	err = gen.WriteToFile(&gen.Region{}, db)
-	if err != nil {
-		log.Println(err)
-		os.Exit(5)
-	}
-	err = gen.WriteToFile(&gen.PayTypes{}, db)
-	if err != nil {
-		log.Println(err)
-		os.Exit(6)
+	for _, r := range reports {
+		err = gen.WriteToFile(r.G, db)
+		if err != nil {
+			log.Println(err)
+			os.Exit(r.ErrCode)
+		}
 	}
 }

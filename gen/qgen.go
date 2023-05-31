@@ -36,7 +36,7 @@ func WriteToFile(g Generator, db *sqlx.DB) error {
 	for i := range r {
 		// это лечит левую кодировку которую возвращает база mysql
 		s := string([]rune(r[i]))
-		n, err2 := f.Write([]byte(s + "\n"))
+		n, err2 := f.WriteString(s + "\n")
 		if err2 != nil {
 			return err2
 		}

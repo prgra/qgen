@@ -1,2 +1,4 @@
 qgen
 /tmp
+gen/ipplan.go
+.DS_Store
