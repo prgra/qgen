@@ -24,8 +24,8 @@ type AbonAddrRow struct {
 	BuildSect     string         `db:"-" csv:"BUILD_SECT"`
 	Apartment     string         `db:"flat" csv:"APARTMENT"`
 	UnstructInfo  string         `db:"-" csv:"UNSTRUCT_INFO"`
-	BeginTime     time.Time      `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
-	EndTime       time.Time      `db:"-" csv:"END_TIME" time:"2006-01-02 15:06:07"`
+	BeginTime     time.Time      `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
+	EndTime       time.Time      `db:"-" csv:"END_TIME" time:"2006-01-02 15:04:05"`
 	RecordAction  string         `db:"-" csv:"RECORD_ACTION"`
 	InternalID1   string         `db:"id" csv:"INTERNAL_ID1"`
 	InternalID2   string         `db:"-" csv:"INTERNAL_ID2"`

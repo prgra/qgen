@@ -15,8 +15,8 @@ type IPPlanRow struct {
 	IPv6        string    `db:"-" csv:"IPV6"`
 	IPv4Mask    string    `db:"mask" csv:"IPV4_MASK"`
 	IPv6Mask    string    `db:"-" csv:"IPV6_MASK"`
-	BeginTime   time.Time `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
-	EndTime     time.Time `db:"-" csv:"END_TIME" time:"2006-01-02 15:06:07"`
+	BeginTime   time.Time `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
+	EndTime     time.Time `db:"-" csv:"END_TIME" time:"2006-01-02 15:04:05"`
 	RegionID    int       `db:"-" csv:"REGION_ID"`
 }
 
@@ -43,7 +43,7 @@ func (a *IPPlan) GetFileName() string {
 
 func (a *IPPlanRow) Calc() {
 	a.IPType = 0
-	a.BeginTime = time.Unix(0, 0)
+	a.BeginTime = time.Unix(0, 0).UTC()
 	if a.IPv4 != "" && a.IPv4Mask != "" {
 		a.IPv4 = MakeIP(a.IPv4)
 		a.IPv4Mask = MakeIP(a.IPv4Mask)

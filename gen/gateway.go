@@ -10,8 +10,8 @@ import (
 
 type GateWayRow struct {
 	GateID        int       `csv:"GATE_ID"`
-	BeginTime     time.Time `csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
-	EndTime       time.Time `csv:"END_TIME" time:"2006-01-02 15:06:07"`
+	BeginTime     time.Time `csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
+	EndTime       time.Time `csv:"END_TIME" time:"2006-01-02 15:04:05"`
 	Description   string    `csv:"DESCRIPTION"`
 	GateType      int       `csv:"GATE_TYPE"`
 	AddressTypeID int       `csv:"ADDRESS_TYPE_ID"`
@@ -35,7 +35,7 @@ func (a *GateWay) Render(db *sqlx.DB) (r []string, err error) {
 	gt := []GateWayRow{
 		{
 			GateID:      1,
-			BeginTime:   time.Unix(0, 0),
+			BeginTime:   time.Unix(0, 0).UTC(),
 			Description: "NAS",
 		},
 	}

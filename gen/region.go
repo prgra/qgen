@@ -10,8 +10,8 @@ import (
 
 type RegionRow struct {
 	ID          string    `db:"id" csv:"ID"`
-	BeginTime   time.Time `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
-	EndTime     time.Time `db:"-" csv:"END_TIME" time:"2006-01-02 15:06:07"`
+	BeginTime   time.Time `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
+	EndTime     time.Time `db:"-" csv:"END_TIME" time:"2006-01-02 15:04:05"`
 	DESCRIPTION string    `db:"name" csv:"DESCRIPTION"`
 	MCC         string    `db:"-" csv:"MCC"`
 	MNC         string    `db:"-" csv:"MNC"`
@@ -28,11 +28,11 @@ func (a *Region) Render(db *sqlx.DB) (r []string, err error) {
 	var rr []RegionRow
 	rr = append(rr, RegionRow{
 		ID:          "0",
-		BeginTime:   time.Unix(0, 0),
+		BeginTime:   time.Unix(0, 0).UTC(),
 		DESCRIPTION: "Не указан",
 	})
 	for i := range regions {
-		regions[i].BeginTime = time.Unix(0, 0)
+		regions[i].BeginTime = time.Unix(0, 0).UTC()
 	}
 	rr = append(rr, regions...)
 	r = csv.MarshalCSV(rr, ";", "")

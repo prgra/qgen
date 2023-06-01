@@ -16,11 +16,11 @@ type Abons struct {
 type AbonRow struct {
 	AbonID               int            `db:"uid" csv:"ID"`                                                 // ID
 	RegionID             sql.NullInt64  `db:"district_id" csv:"REGION_ID"`                                  // REGION_ID
-	CDate                string         `db:"contract_date" csv:"CONTRACT_DATE" time:"2006-01-02 15:06:07"` // CONTRACT_DATE
+	CDate                time.Time      `db:"contract_date" csv:"CONTRACT_DATE" time:"2006-01-02 15:04:05"` // CONTRACT_DATE
 	Login                string         `db:"id" csv:"CONTRACT"`                                            // CONTRACT
 	BID                  int            `db:"bill_id" csv:"ACCOUNT"`                                        // ACCOUNT
-	ActualFrom           time.Time      `db:"-" csv:"ACTUAL_FROM" time:"2006-01-02 15:06:07"`               // ACTUAL_FROM
-	ActualTo             time.Time      `db:"-" csv:"ACTUAL_TO" time:"2006-01-02 15:06:07"`                 // ACTUAL_TO
+	ActualFrom           time.Time      `db:"-" csv:"ACTUAL_FROM" time:"2006-01-02 15:04:05"`               // ACTUAL_FROM
+	ActualTo             time.Time      `db:"-" csv:"ACTUAL_TO" time:"2006-01-02 15:04:05"`                 // ACTUAL_TO
 	Company              int            `db:"company_id" csv:"-"`                                           //
 	AbonType             int            `db:"-" csv:"ABONENT_TYPE"`                                         // ABONENT_TYPE
 	NameInfoType         int            `db:"-" csv:"NAME_INFO_TYPE"`                                       // NAME_INFO_TYPE
@@ -44,8 +44,8 @@ type AbonRow struct {
 	Contact              string         `db:"-" csv:"CONTACT"`                                              // CONTACT
 	PhoneFax             string         `db:"phone" csv:"PHONE_FAX"`                                        // PHONE_FAX
 	Status               int            `db:"disdel" csv:"STATUS"`                                          // STATUS
-	Attach               sql.NullTime   `db:"attach" csv:"ATTACH" time:"2006-01-02 15:06:07"`               // ATTACH
-	Detach               sql.NullTime   `db:"detach" csv:"DETACH" time:"2006-01-02 15:06:07"`               // DETACH
+	Attach               sql.NullTime   `db:"attach" csv:"ATTACH" time:"2006-01-02 15:04:05"`               // ATTACH
+	Detach               sql.NullTime   `db:"detach" csv:"DETACH" time:"2006-01-02 15:04:05"`               // DETACH
 	NetworkType          int            `db:"-" csv:"NETWORK_TYPE"`                                         // NETWORK_TYPE
 	RecordAction         string         `db:"-" csv:"RECORD_ACTION"`                                        // RECORD_ACTION
 	InternalID1          string         `db:"uid" csv:"INTERNAL_ID1"`                                       // INTERNAL_ID1
@@ -86,7 +86,7 @@ JOIN tarif_plans tp ON tp.id=dv.tp_id
 	for i := range abons {
 		abons[i].Calc()
 	}
-	r = csv.MarshalCSV(abons, ";", `"`)
+	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
 }
 
@@ -115,9 +115,17 @@ func (r *AbonRow) Calc() {
 	// r.InternalID1 = fmt.Sprintf("%d", r.AbonID)
 	r.NetworkType = 4
 	pn := string(passportRe.ReplaceAll([]byte(r.IdentCardNumber), []byte("")))
-	if len(pn) > 4 {
+	if len(pn) == 10 && !r.SPassportDate.IsZero() {
+		r.IdentCardType = 0
 		r.IdentCardSerial = pn[:4]
 		r.IdentCardNumber = pn[4:]
+		r.IdentCardDescription = fmt.Sprintf("%s %s", r.SPassportDate.Format("2006-01-02"), r.IdentCardDescription)
+		r.IdentCardUnstruct = ""
+	} else {
+		r.IdentCardSerial = ""
+		r.IdentCardNumber = ""
+		r.IdentCardDescription = ""
+		r.IdentCardTypeID = 2
 	}
 	if r.RegionID.Int64 == 0 {
 		r.RegionID.Int64 = 1
