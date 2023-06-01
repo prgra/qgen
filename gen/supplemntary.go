@@ -9,12 +9,12 @@ import (
 )
 
 type SupplementaryRow struct {
-	ID          int       `csv:"ID"`                           // 	Идентификатор услуги
-	Mnemonic    string    `csv:"MNEMONIC"`                     //		Мнемоническое обозначение
-	BeginTime   time.Time `csv:"BEGIN_TIME" time:"2006-01-02"` // 	Время начала действия
-	EndTime     time.Time `csv:"END_TIME" time:"2006-01-02"`   // 	Время конца действия
-	Description string    `csv:"DESCRIPTION"`                  // 	Описание
-	RegionID    int       `csv:"REGION_ID"`                    // 	Идентификатор оператора связи или структурного подразделения (ссылка на справочник операторов или филиалов)
+	ID          int       `csv:"ID"`                                    // 	Идентификатор услуги
+	Mnemonic    string    `csv:"MNEMONIC"`                              //		Мнемоническое обозначение
+	BeginTime   time.Time `csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"` // 	Время начала действия
+	EndTime     time.Time `csv:"END_TIME" time:"2006-01-02 15:06:07"`   // 	Время конца действия
+	Description string    `csv:"DESCRIPTION"`                           // 	Описание
+	RegionID    int       `csv:"REGION_ID"`                             // 	Идентификатор оператора связи или структурного подразделения (ссылка на справочник операторов или филиалов)
 }
 
 type Supplementary struct{}

@@ -10,8 +10,8 @@ import (
 
 type GateWayRow struct {
 	GateID        int       `csv:"GATE_ID"`
-	BeginTime     time.Time `csv:"BEGIN_TIME"`
-	EndTime       time.Time `csv:"END_TIME"`
+	BeginTime     time.Time `csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
+	EndTime       time.Time `csv:"END_TIME" time:"2006-01-02 15:06:07"`
 	Description   string    `csv:"DESCRIPTION"`
 	GateType      int       `csv:"GATE_TYPE"`
 	AddressTypeID int       `csv:"ADDRESS_TYPE_ID"`

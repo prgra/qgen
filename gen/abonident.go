@@ -44,8 +44,8 @@ type AbonIdentRow struct {
 	IPv6              string         `db:"-" csv:"IPV6"`
 	IPv4Mask          string         `db:"mask" csv:"IPV4_MASK"`
 	IPv6Mask          string         `db:"-" csv:"IPV6_MASK"`
-	BeginTime         string         `db:"contract_date" csv:"BEGIN_TIME"`
-	EndTime           string         `db:"-" csv:"END_TIME"`
+	BeginTime         time.Time      `db:"contract_date" csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
+	EndTime           time.Time      `db:"-" csv:"END_TIME" time:"2006-01-02 15:06:07"`
 	LineObject        string         `db:"-" csv:"LINE_OBJECT"`
 	LineCross         string         `db:"-" csv:"LINE_CROSS"`
 	LineBlock         string         `db:"-" csv:"LINE_BLOCK"`

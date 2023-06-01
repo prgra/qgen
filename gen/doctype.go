@@ -10,8 +10,8 @@ import (
 
 type DocTypeRow struct {
 	DocTypeID   int       `csv:"DOC_TYPE_ID"`
-	BeginTime   time.Time `csv:"BEGIN_TIME"`
-	EndTime     time.Time `csv:"END_TIME"`
+	BeginTime   time.Time `csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
+	EndTime     time.Time `csv:"END_TIME" time:"2006-01-02 15:06:07"`
 	Description string    `csv:"DESCRIPTION"`
 	RegionID    int       `csv:"REGION_ID"`
 }

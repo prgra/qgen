@@ -10,8 +10,8 @@ import (
 
 type RegionRow struct {
 	ID          string    `db:"id" csv:"ID"`
-	BeginTime   time.Time `db:"-" csv:"BEGIN_TIME" time:"2006-01-02"`
-	EndTime     time.Time `db:"-" csv:"END_TIME" time:"2006-01-02"`
+	BeginTime   time.Time `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:06:07"`
+	EndTime     time.Time `db:"-" csv:"END_TIME" time:"2006-01-02 15:06:07"`
 	DESCRIPTION string    `db:"name" csv:"DESCRIPTION"`
 	MCC         string    `db:"-" csv:"MCC"`
 	MNC         string    `db:"-" csv:"MNC"`

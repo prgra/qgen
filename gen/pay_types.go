@@ -12,7 +12,7 @@ type PayTypes struct{}
 
 type PayTypeRow struct {
 	ID        int       `csv:"ID"`
-	BeginTime time.Time `csv:"BEGIN_TIME" format:"2006-01-02"`
+	BeginTime time.Time `csv:"BEGIN_TIME" format:"2006-01-02 15:06:07"`
 	EndTime   time.Time `csv:"END_TIME"`
 	Descr     string    `csv:"DESCRIPTION"`
 	RegionID  int       `csv:"REGION_ID"`
