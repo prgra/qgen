@@ -27,7 +27,7 @@ type AbonIdentRow struct {
 	MAC               sql.NullString `db:"mac" csv:"MAC"`
 	VPI               string         `db:"-" csv:"VPI"`
 	VCI               string         `db:"-" csv:"VCI"`
-	Login             string         `db:"ip" csv:"LOGIN"`
+	Login             string         `db:"-" csv:"LOGIN"`
 	EMail             string         `db:"email" csv:"E_MAIL"`
 	PIN               string         `db:"-" csv:"PIN"`
 	UserDomain        string         `db:"-" csv:"USER_DOMAIN"`
@@ -63,7 +63,6 @@ func (a *AbonIdent) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonIdentRow //
 	err = db.Select(&abons, `select u.uid, 
 pi.contract_date,
-u.id,
 pi.email,
 INET_NTOA(dv.ip) as ip,
 INET_NTOA(dv.netmask) as mask,
@@ -99,8 +98,8 @@ func (a *AbonIdentRow) Calc() {
 	a.EquipmentType = 0
 	a.IPType = 0
 	a.MAC.String = MakeMac(a.MAC.String)
-	a.Login = MakeIP(a.IPv4)
 	a.IPv4 = MakeIP(a.IPv4)
+	a.Login = a.IPv4
 	if a.IPv4 != "" {
 		a.IPv4Mask = MakeIP(a.IPv4Mask)
 	} else {
