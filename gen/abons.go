@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -15,7 +16,7 @@ type Abons struct {
 
 type AbonRow struct {
 	AbonID               int            `db:"uid" csv:"ID"`                                                 // ID
-	RegionID             sql.NullInt64  `db:"district_id" csv:"REGION_ID"`                                  // REGION_ID
+	RegionID             int            `db:"-" csv:"REGION_ID"`                                            // REGION_ID
 	CDate                time.Time      `db:"contract_date" csv:"CONTRACT_DATE" time:"2006-01-02 15:04:05"` // CONTRACT_DATE
 	Login                string         `db:"id" csv:"CONTRACT"`                                            // CONTRACT
 	BID                  int            `db:"bill_id" csv:"ACCOUNT"`                                        // ACCOUNT
@@ -36,7 +37,7 @@ type AbonRow struct {
 	SPassportDate        time.Time      `db:"pasport_date" csv:"-"`                                         // SPassportDate для формирования паспорта
 	IdentCardNumber      string         `db:"pasport_num" csv:"IDENT_CARD_NUMBER"`                          // IDENT_CARD_NUMBER
 	IdentCardDescription string         `db:"pasport_grant" csv:"IDENT_CARD_DESCRIPTION"`                   // IDENT_CARD_DESCRIPTION
-	IdentCardUnstruct    string         `db:"passport" csv:"IDENT_CARD_UNSTRUCT"`                           // IDENT_CARD_UNSTRUCT
+	IdentCardUnstruct    string         `db:"pasport" csv:"IDENT_CARD_UNSTRUCT"`                            // IDENT_CARD_UNSTRUCT
 	Bank                 string         `db:"-" csv:"BANK"`                                                 // BANK
 	BankAccount          string         `db:"-" csv:"BANK_ACCOUNT"`                                         // BANK_ACCOUNT
 	FullName             sql.NullString `db:"compname" csv:"FULL_NAME"`                                     // FULL_NAME
@@ -54,14 +55,13 @@ type AbonRow struct {
 func (a *Abons) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonRow //
 	err = db.Select(&abons, `select u.uid, 
-s.district_id,
 pi.contract_date,
 u.id,
 u.company_id,
 pi.fio,
 u.bill_id,
 pasport_num, pasport_date, pasport_grant,
-concat(pasport_num,' ',pasport_date,' ',pasport_grant) as passport,
+concat(pasport_num,', ',pasport_date,', ',pasport_grant) as pasport,
 c.name as compname,
 u.disable+u.deleted as disdel,
 (select datetime from 
@@ -97,10 +97,10 @@ func (a *Abons) GetFileName() string {
 var passportRe = regexp.MustCompile(`\D+`)
 
 func (r *AbonRow) Calc() {
-	// r.ActualFrom = time.Now()
-	// r.ActualTo = time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
+	r.ActualFrom = r.Attach.Time
+	r.ActualTo = time.Now().UTC()
 	r.AbonType = 42
-	if r.Company > 0 {
+	if r.Company > 0 || IsUrLico(r.FIO) {
 		r.AbonType = 43
 	}
 	if r.Status == 0 {
@@ -127,9 +127,28 @@ func (r *AbonRow) Calc() {
 		r.IdentCardDescription = ""
 		r.IdentCardTypeID = 2
 	}
-	if r.RegionID.Int64 == 0 {
-		r.RegionID.Int64 = 1
-		r.RegionID.Valid = true
-	}
+	r.RegionID = EnvRegionID
 
+}
+
+func IsUrLico(s string) bool {
+	if s == "" {
+		return false
+	}
+	if strings.HasPrefix(s, "ОАО") ||
+		strings.HasPrefix(s, "ЗАО") ||
+		strings.HasPrefix(s, "ООО") ||
+		strings.HasPrefix(s, "ПАО") ||
+		strings.HasPrefix(s, "НКО") ||
+		strings.HasPrefix(s, "НП") ||
+		strings.HasPrefix(s, "АО") ||
+		strings.HasPrefix(s, "АНО") ||
+		strings.HasPrefix(s, "АКБ") ||
+		strings.HasPrefix(s, "АК") {
+		return true
+	}
+	if strings.Contains(s, `"`) {
+		return true
+	}
+	return false
 }

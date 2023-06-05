@@ -22,13 +22,15 @@ func (a *DocType) Render(db *sqlx.DB) (r []string, err error) {
 	regions := []DocTypeRow{
 		{
 			DocTypeID:   1,
-			BeginTime:   time.Unix(0, 0).UTC(),
+			BeginTime:   EnvInitDate,
 			Description: "паспорт",
+			RegionID:    EnvRegionID,
 		},
 		{
 			DocTypeID:   2,
-			BeginTime:   time.Unix(0, 0).UTC(),
+			BeginTime:   EnvInitDate,
 			Description: "другое",
+			RegionID:    EnvRegionID,
 		},
 	}
 

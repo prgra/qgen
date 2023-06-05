@@ -35,8 +35,9 @@ func (a *GateWay) Render(db *sqlx.DB) (r []string, err error) {
 	gt := []GateWayRow{
 		{
 			GateID:      1,
-			BeginTime:   time.Unix(0, 0).UTC(),
+			BeginTime:   EnvInitDate,
 			Description: "NAS",
+			RegionID:    EnvRegionID,
 		},
 	}
 

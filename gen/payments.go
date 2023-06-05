@@ -2,7 +2,7 @@ package gen
 
 // PaymentRow is a row from the PAYMENTS table
 type PaymentRow struct {
-	RegionID           string `db:"-" csv:"REGION_ID"`
+	RegionID           int    `db:"-" csv:"REGION_ID"`
 	PaymentType        string `db:"-" csv:"PAYMENT_TYPE"`
 	PayTypeID          string `db:"method" csv:"PAY_TYPE_ID"`
 	PaymentDate        string `db:"date" csv:"PAYMENT_DATE"`

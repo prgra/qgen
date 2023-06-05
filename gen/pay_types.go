@@ -20,21 +20,21 @@ type PayTypeRow struct {
 
 func (a *PayTypes) Render(db *sqlx.DB) (r []string, err error) {
 	var tps = []PayTypeRow{
-		{ID: 0, Descr: "Наличные", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 1, Descr: "Банк", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 2, Descr: "Внешние платежи", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 3, Descr: "Credit Card", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 4, Descr: "Бонус", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 5, Descr: "Корректировка", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 6, Descr: "Компенсация", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 7, Descr: "Перевод личных средств", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 8, Descr: "Пересчитать", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 44, Descr: "SberbankNew", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 67, Descr: "Sberbank", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 68, Descr: "РИРЦ", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 101, Descr: "РИРЦ кабельное", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 102, Descr: "РИРЦ Интернет", BeginTime: time.Unix(0, 0).UTC()},
-		{ID: 110, Descr: "Сбербанк карты", BeginTime: time.Unix(0, 0).UTC()},
+		{ID: 0, Descr: "Наличные", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 1, Descr: "Банк", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 2, Descr: "Внешние платежи", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 3, Descr: "Credit Card", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 4, Descr: "Бонус", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 5, Descr: "Корректировка", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 6, Descr: "Компенсация", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 7, Descr: "Перевод личных средств", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 8, Descr: "Пересчитать", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 44, Descr: "SberbankNew", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 67, Descr: "Sberbank", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 68, Descr: "РИРЦ", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 101, Descr: "РИРЦ кабельное", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 102, Descr: "РИРЦ Интернет", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+		{ID: 110, Descr: "Сбербанк карты", BeginTime: EnvInitDate, RegionID: EnvRegionID},
 	}
 
 	r = csv.MarshalCSV(tps, ";", "")

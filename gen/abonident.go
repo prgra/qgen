@@ -10,17 +10,11 @@ import (
 	"github.com/prgra/qgen/csv"
 )
 
-//
-//
-//
-//
-//
-
 type AbonIdent struct{}
 
 type AbonIdentRow struct {
 	AbonID            int            `db:"uid" csv:"ABONENT_ID"`
-	RegionID          sql.NullInt64  `db:"district_id" csv:"REGION_ID"`
+	RegionID          int            `db:"-" csv:"REGION_ID"`
 	IdentType         int            `db:"-" csv:"IDENT_TYPE"`
 	Phone             string         `db:"-" csv:"PHONE"`
 	InternalNumber    string         `db:"-" csv:"INTERNAL_NUMBER"`
@@ -33,7 +27,7 @@ type AbonIdentRow struct {
 	MAC               sql.NullString `db:"mac" csv:"MAC"`
 	VPI               string         `db:"-" csv:"VPI"`
 	VCI               string         `db:"-" csv:"VCI"`
-	Login             string         `db:"id" csv:"LOGIN"`
+	Login             string         `db:"ip" csv:"LOGIN"`
 	EMail             string         `db:"email" csv:"E_MAIL"`
 	PIN               string         `db:"-" csv:"PIN"`
 	UserDomain        string         `db:"-" csv:"USER_DOMAIN"`
@@ -68,7 +62,6 @@ type AbonIdentRow struct {
 func (a *AbonIdent) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonIdentRow //
 	err = db.Select(&abons, `select u.uid, 
-s.district_id,
 pi.contract_date,
 u.id,
 pi.email,
@@ -101,7 +94,7 @@ func (a *AbonIdent) GetFileName() string {
 }
 
 func (a *AbonIdentRow) Calc() {
-	a.RegionID.Valid = true
+	a.RegionID = EnvRegionID
 	a.IdentType = 5
 	a.EquipmentType = 0
 	a.IPType = 0

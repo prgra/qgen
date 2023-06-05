@@ -3,6 +3,9 @@ package gen
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -11,7 +14,7 @@ import (
 
 type AbonAddrRow struct {
 	AbonentID     int            `db:"uid" csv:"ABONENT_ID"`
-	RegionID      sql.NullInt64  `db:"district_id" csv:"REGION_ID"`
+	RegionID      int            `db:"-" csv:"REGION_ID"`
 	AddressTypeID int            `db:"-" csv:"ADDRESS_TYPE_ID"`
 	AddressType   int            `db:"-" csv:"ADDRESS_TYPE"`
 	Zip           string         `db:"-" csv:"ZIP"`
@@ -27,7 +30,7 @@ type AbonAddrRow struct {
 	BeginTime     time.Time      `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
 	EndTime       time.Time      `db:"-" csv:"END_TIME" time:"2006-01-02 15:04:05"`
 	RecordAction  string         `db:"-" csv:"RECORD_ACTION"`
-	InternalID1   string         `db:"id" csv:"INTERNAL_ID1"`
+	InternalID1   string         `db:"-" csv:"INTERNAL_ID1"`
 	InternalID2   string         `db:"-" csv:"INTERNAL_ID2"`
 }
 
@@ -36,8 +39,6 @@ type AbonAddr struct{}
 func (a *AbonAddr) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonAddrRow //
 	err = db.Select(&abons, `select u.uid, 
-s.district_id,
-u.id,
 d.name as dist,
 s.name as street,
 b.number as build,
@@ -70,8 +71,42 @@ func (a *AbonAddr) GetFileName() string {
 
 func (a *AbonAddrRow) Calc() {
 	a.AddressTypeID = 0
-	a.AddressType = 1
-	if a.City.Valid && a.Street.Valid {
+	a.RegionID = EnvRegionID
+	a.BeginTime = EnvInitDate
+	a.Building.String, a.BuildSect = SplitHouseNumber(a.Building.String)
+	n, _ := strconv.Atoi(a.Building.String)
+	if (!a.City.Valid && !a.Street.Valid) || n == 0 {
+		a.AddressType = 1
 		a.UnstructInfo = fmt.Sprintf("%s %s %s %s", a.City.String, a.Street.String, a.Building.String, a.Apartment)
+		a.Building.String = ""
+		a.BuildSect = ""
+		a.Apartment = ""
 	}
+}
+
+var LaterRegexp = regexp.MustCompile(`(\d+)[\ \/]?([а-яА-Я]$)`)
+var CorpRegexp = regexp.MustCompile(`(\d+)(\D+)(\d+)`)
+
+func SplitHouseNumber(house string) (build, sect string) {
+	if house == "" {
+		return "", ""
+	}
+	house = strings.TrimSpace(house)
+	house = strings.Replace(house, `"`, "", -1)
+	// for i := len(house) - 1; i >= 0; i-- {
+	// 	if house[i] == '/' {
+	// 		return house[:i], house[i+1:]
+	// 	}
+	// }
+	if LaterRegexp.MatchString(house) {
+		return LaterRegexp.FindStringSubmatch(house)[1],
+			strings.ToUpper(LaterRegexp.FindStringSubmatch(house)[2])
+	}
+	if CorpRegexp.MatchString(house) {
+		return CorpRegexp.FindStringSubmatch(house)[1],
+			CorpRegexp.FindStringSubmatch(house)[2] + " " +
+				strings.TrimSpace(CorpRegexp.FindStringSubmatch(house)[3])
+	}
+
+	return house, ""
 }

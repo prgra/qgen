@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -28,6 +30,18 @@ func main() {
 			os.Exit(2)
 		}
 	}
+	gen.EnvRegionID, _ = strconv.Atoi(os.Getenv("QGEN_REGION_ID"))
+	gen.EnvRegionName = os.Getenv("QGEN_REGION_NAME")
+	if gen.EnvRegionName == "" {
+		gen.EnvRegionName = "Основной"
+	}
+
+	gen.EnvInitDate, err = time.Parse("2006-01-02", os.Getenv("QGEN_INIT_DATE"))
+	if err != nil {
+		gen.EnvInitDate = time.Unix(0, 0)
+	}
+	gen.EnvInitDate = gen.EnvInitDate.UTC()
+
 	var reports = []Report{
 		{&gen.DocType{}, 1},
 		{&gen.Abons{}, 2},

@@ -5,8 +5,15 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+)
+
+var (
+	EnvRegionName string
+	EnvRegionID   int
+	EnvInitDate   time.Time
 )
 
 type Generator interface {

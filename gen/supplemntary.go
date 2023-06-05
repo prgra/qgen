@@ -24,8 +24,9 @@ func (a *Supplementary) Render(db *sqlx.DB) (r []string, err error) {
 		{
 			ID:          1,
 			Mnemonic:    "INET",
-			BeginTime:   time.Unix(0, 0).UTC(),
+			BeginTime:   EnvInitDate,
 			Description: "Доступ в Интернет по технологии FTTx",
+			RegionID:    EnvRegionID,
 		},
 	}
 
