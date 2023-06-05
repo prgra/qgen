@@ -44,7 +44,7 @@ func (a *IPPlan) GetFileName() string {
 func (a *IPPlanRow) Calc() {
 	a.IPType = 0
 	a.RegionID = EnvRegionID
-	a.BeginTime = time.Unix(0, 0).UTC()
+	a.BeginTime = EnvInitDate
 	if a.IPv4 != "" && a.IPv4Mask != "" {
 		a.IPv4 = MakeIP(a.IPv4)
 		a.IPv4Mask = MakeIP(a.IPv4Mask)

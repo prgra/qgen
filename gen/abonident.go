@@ -55,7 +55,7 @@ type AbonIdentRow struct {
 	LocLongitude      string         `db:"-" csv:"LOC_LONGITUDE"`
 	LocProjectionType string         `db:"-" csv:"LOC_PROJECTION_TYPE"`
 	RecordAction      string         `db:"-" csv:"RECORD_ACTION"`
-	InternalID1       string         `db:"id" csv:"INTERNAL_ID1"`
+	InternalID1       string         `db:"-" csv:"INTERNAL_ID1"`
 	InternalID2       string         `db:"-" csv:"INTERNAL_ID2"`
 }
 
@@ -99,6 +99,7 @@ func (a *AbonIdentRow) Calc() {
 	a.EquipmentType = 0
 	a.IPType = 0
 	a.MAC.String = MakeMac(a.MAC.String)
+	a.Login = MakeIP(a.IPv4)
 	a.IPv4 = MakeIP(a.IPv4)
 	if a.IPv4 != "" {
 		a.IPv4Mask = MakeIP(a.IPv4Mask)
