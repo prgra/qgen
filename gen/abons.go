@@ -98,10 +98,12 @@ var passportRe = regexp.MustCompile(`\D+`)
 
 func (r *AbonRow) Calc() {
 	r.ActualFrom = r.Attach.Time
-	r.ActualTo = time.Now().UTC()
 	r.AbonType = 42
 	if r.Company > 0 || IsUrLico(r.FIO) {
 		r.AbonType = 43
+		r.FullName.String = r.FIO
+		r.FullName.Valid = true
+		r.FIO = ""
 	}
 	if r.Status == 0 {
 		r.Status = 0
@@ -128,6 +130,9 @@ func (r *AbonRow) Calc() {
 		r.IdentCardTypeID = 2
 	}
 	r.RegionID = EnvRegionID
+	if r.CDate.IsZero() {
+		r.CDate = EnvInitDate
+	}
 
 }
 

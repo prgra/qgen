@@ -17,7 +17,7 @@ type AbonAddrRow struct {
 	RegionID      int            `db:"-" csv:"REGION_ID"`
 	AddressTypeID int            `db:"-" csv:"ADDRESS_TYPE_ID"`
 	AddressType   int            `db:"-" csv:"ADDRESS_TYPE"`
-	Zip           string         `db:"-" csv:"ZIP"`
+	Zip           sql.NullString `db:"zip" csv:"ZIP"`
 	Country       string         `db:"-" csv:"COUNTRY"`
 	Region        string         `db:"-" csv:"REGION"`
 	Zone          string         `db:"-" csv:"ZONE"`
@@ -40,6 +40,7 @@ func (a *AbonAddr) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonAddrRow //
 	err = db.Select(&abons, `select u.uid, 
 d.name as dist,
+d.zip as zip,
 s.name as street,
 b.number as build,
 pi.address_flat as flat
@@ -70,6 +71,7 @@ func (a *AbonAddr) GetFileName() string {
 }
 
 func (a *AbonAddrRow) Calc() {
+	a.Country = EnvCountry
 	a.AddressTypeID = 0
 	a.RegionID = EnvRegionID
 	a.BeginTime = EnvInitDate

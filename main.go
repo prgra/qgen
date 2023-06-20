@@ -41,6 +41,7 @@ func main() {
 		gen.EnvInitDate = time.Unix(0, 0)
 	}
 	gen.EnvInitDate = gen.EnvInitDate.UTC()
+	gen.EnvCountry = os.Getenv("QGEN_COUNTRY")
 
 	var reports = []Report{
 		{&gen.DocType{}, 1},

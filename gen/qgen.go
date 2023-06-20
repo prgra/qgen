@@ -12,6 +12,7 @@ import (
 
 var (
 	EnvRegionName string
+	EnvCountry    string
 	EnvRegionID   int
 	EnvInitDate   time.Time
 )
