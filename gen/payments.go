@@ -1,5 +1,13 @@
 package gen
 
+import (
+	"fmt"
+	"time"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/csv"
+)
+
 // PaymentRow is a row from the PAYMENTS table
 type PaymentRow struct {
 	RegionID           int    `db:"-" csv:"REGION_ID"`
@@ -45,3 +53,26 @@ type PaymentRow struct {
 
 // Payments is a generator for PAYMENTS table
 type Payments struct{}
+
+func (a *Payments) Render(db *sqlx.DB) (r []string, err error) {
+	var plan []IPPlanRow
+	err = db.Select(&plan, `select INET_NTOA(network) as network,
+		INET_NTOA(mask) as mask,
+		name from dhcphosts_networks order by id`)
+	if err != nil {
+		return nil, err
+	}
+	for i := range plan {
+		plan[i].Calc()
+	}
+	r = csv.MarshalCSV(plan, ";", "")
+	return r, nil
+}
+
+func (a *Payments) GetFileName() string {
+	return fmt.Sprintf("PAYMENT_%s.txt", time.Now().Format("20060102_1504"))
+}
+
+func (a *Payments) Calc() {
+
+}
