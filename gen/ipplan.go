@@ -10,7 +10,7 @@ import (
 
 type IPPlanRow struct {
 	Description string    `db:"name" csv:"DESCRIPTION"`
-	IPType      int       `db:"-" csv:"ip_type"`
+	IPType      int       `db:"-" csv:"IP_TYPE"`
 	IPv4        string    `db:"network" csv:"IPV4"`
 	IPv6        string    `db:"-" csv:"IPV6"`
 	IPv4Mask    string    `db:"mask" csv:"IPV4_MASK"`

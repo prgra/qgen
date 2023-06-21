@@ -38,7 +38,7 @@ type AbonIdentRow struct {
 	IPv6              string         `db:"-" csv:"IPV6"`
 	IPv4Mask          string         `db:"mask" csv:"IPV4_MASK"`
 	IPv6Mask          string         `db:"-" csv:"IPV6_MASK"`
-	BeginTime         time.Time      `db:"contract_date" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
+	BeginTime         time.Time      `db:"attach" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
 	EndTime           time.Time      `db:"-" csv:"END_TIME" time:"2006-01-02 15:04:05"`
 	LineObject        string         `db:"-" csv:"LINE_OBJECT"`
 	LineCross         string         `db:"-" csv:"LINE_CROSS"`
@@ -62,11 +62,13 @@ type AbonIdentRow struct {
 func (a *AbonIdent) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonIdentRow //
 	err = db.Select(&abons, `select u.uid, 
-pi.contract_date,
+-- pi.contract_date,
 pi.email,
 INET_NTOA(dv.ip) as ip,
 INET_NTOA(dv.netmask) as mask,
-dh.mac
+dh.mac,
+(select datetime from 
+	admin_actions where uid=u.uid order by id limit 1) as attach
 from 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
@@ -99,7 +101,7 @@ func (a *AbonIdentRow) Calc() {
 	a.IPType = 0
 	a.MAC.String = MakeMac(a.MAC.String)
 	a.IPv4 = MakeIP(a.IPv4)
-	a.Login = a.IPv4
+	// a.Login = a.IPv4
 	if a.IPv4 != "" {
 		a.IPv4Mask = MakeIP(a.IPv4Mask)
 	} else {
