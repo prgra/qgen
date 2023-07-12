@@ -2,6 +2,7 @@ package gen
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -61,8 +62,10 @@ JOIN tarif_plans tp ON tp.id=dv.tp_id
 	if err != nil {
 		return nil, err
 	}
+	var ainf addrInfo
 	for i := range abons {
-		abons[i].Calc()
+		json.Unmarshal([]byte(abons[i].Descr.String), &ainf)
+		abons[i].Calc(ainf)
 	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
@@ -78,12 +81,11 @@ type addrInfo struct {
 	Zone    string `json:"zone"`
 }
 
-func (a *AbonAddrRow) Calc() {
+func (a *AbonAddrRow) Calc(ainf addrInfo) {
 	a.Country = EnvCountry
 	a.AddressTypeID = 0
 	a.RegionID = EnvRegionID
 	a.BeginTime = EnvInitDate
-	var ainf addrInfo
 	a.Country = ainf.Country
 	a.Zone = ainf.Zone
 	a.Region = ainf.Region
