@@ -15,6 +15,7 @@ var (
 	EnvCountry    string
 	EnvRegionID   int
 	EnvInitDate   time.Time
+	EnvOnlyOneDay bool
 )
 
 type Generator interface {

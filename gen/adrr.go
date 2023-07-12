@@ -32,20 +32,22 @@ type AbonAddrRow struct {
 	RecordAction  string         `db:"-" csv:"RECORD_ACTION"`
 	InternalID1   string         `db:"-" csv:"INTERNAL_ID1"`
 	InternalID2   string         `db:"-" csv:"INTERNAL_ID2"`
+	Descr         sql.NullString `db:"comments" csv:"-"`
 }
 
 type AbonAddr struct{}
 
 func (a *AbonAddr) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonAddrRow //
-	err = db.Select(&abons, `select u.uid, 
+	err = db.Select(&abons, `SELECT u.uid, 
 d.name as dist,
+d.comments,
 d.zip as zip,
 s.name as street,
 b.number as build,
 pi.address_flat as flat
 
-from 
+FROM 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
 LEFT JOIN users_pi pi ON pi.uid=u.uid 
@@ -70,11 +72,21 @@ func (a *AbonAddr) GetFileName() string {
 	return fmt.Sprintf("ABONENT_ADDR_%s.txt", time.Now().Format("20060102_1504"))
 }
 
+type addrInfo struct {
+	Country string `json:"country"`
+	Region  string `json:"region"`
+	Zone    string `json:"zone"`
+}
+
 func (a *AbonAddrRow) Calc() {
 	a.Country = EnvCountry
 	a.AddressTypeID = 0
 	a.RegionID = EnvRegionID
 	a.BeginTime = EnvInitDate
+	var ainf addrInfo
+	a.Country = ainf.Country
+	a.Zone = ainf.Zone
+	a.Region = ainf.Region
 	a.Building.String, a.BuildSect = SplitHouseNumber(a.Building.String)
 	n, _ := strconv.Atoi(a.Building.String)
 	if (!a.City.Valid && !a.Street.Valid) || n == 0 {

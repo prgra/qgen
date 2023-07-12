@@ -19,24 +19,10 @@ type PayTypeRow struct {
 }
 
 func (a *PayTypes) Render(db *sqlx.DB) (r []string, err error) {
-	var tps = []PayTypeRow{
-		{ID: 0, Descr: "Наличные", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 1, Descr: "Банк", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 2, Descr: "Внешние платежи", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 3, Descr: "Credit Card", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 4, Descr: "Бонус", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 5, Descr: "Корректировка", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 6, Descr: "Компенсация", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 7, Descr: "Перевод личных средств", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 8, Descr: "Пересчитать", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 44, Descr: "SberbankNew", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 67, Descr: "Sberbank", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 68, Descr: "РИРЦ", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 101, Descr: "РИРЦ кабельное", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 102, Descr: "РИРЦ Интернет", BeginTime: EnvInitDate, RegionID: EnvRegionID},
-		{ID: 110, Descr: "Сбербанк карты", BeginTime: EnvInitDate, RegionID: EnvRegionID},
+	_, tps, err := LoadPayMethodsMapFromFile("paymethods.map")
+	if err != nil {
+		return nil, err
 	}
-
 	r = csv.MarshalCSV(tps, ";", "")
 	return r, nil
 }

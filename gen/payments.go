@@ -2,6 +2,11 @@ package gen
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -56,9 +61,9 @@ type Payments struct{}
 
 func (a *Payments) Render(db *sqlx.DB) (r []string, err error) {
 	var plan []IPPlanRow
-	err = db.Select(&plan, `select INET_NTOA(network) as network,
-		INET_NTOA(mask) as mask,
-		name from dhcphosts_networks order by id`)
+	_, _, err = LoadPayMethodsMapFromFile("paymethods.map")
+	err = db.Select(&plan, `SELECT id, date, sum, method, uid from payments
+		where date > '?' order by id`)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +72,42 @@ func (a *Payments) Render(db *sqlx.DB) (r []string, err error) {
 	}
 	r = csv.MarshalCSV(plan, ";", "")
 	return r, nil
+}
+
+// LoadMethodsMapFromFile loads map of payment methods from file
+// file struct is:
+// 1:1
+// 2:1
+func LoadPayMethodsMapFromFile(filename string) (r map[int]int, pt []PayTypeRow, err error) {
+	f, err := os.Open(filepath.Clean(filename))
+	if err != nil {
+		return nil, nil, err
+	}
+	fa, err := io.ReadAll(f)
+	if err != nil {
+		return nil, nil, err
+	}
+	r = make(map[int]int)
+	for _, v := range strings.Split(string(fa), "\n") {
+		a := strings.Split(v, ":")
+		fmt.Println(a)
+		if len(a) != 3 {
+			continue
+		}
+		i1, _ := strconv.Atoi(a[0])
+		i2, _ := strconv.Atoi(a[1])
+		if i1 == 0 || i2 == 0 {
+			continue
+		}
+		r[i1] = i2
+		var p PayTypeRow
+		p.ID = i1
+		p.Descr = fmt.Sprintf(a[2])
+		p.BeginTime = EnvInitDate
+		p.RegionID = EnvRegionID
+		pt = append(pt, p)
+	}
+	return r, pt, nil
 }
 
 func (a *Payments) GetFileName() string {

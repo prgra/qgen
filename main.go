@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -35,7 +36,8 @@ func main() {
 	if gen.EnvRegionName == "" {
 		gen.EnvRegionName = "Основной"
 	}
-
+	gen.EnvOnlyOneDay = os.Getenv("QGEN_ONLY_ONE_DAY") == "1" ||
+		strings.ToLower(os.Getenv("QGEN_ONLY_ONE_DAY")) == "true"
 	gen.EnvInitDate, err = time.Parse("2006-01-02", os.Getenv("QGEN_INIT_DATE"))
 	if err != nil {
 		gen.EnvInitDate = time.Unix(0, 0)
