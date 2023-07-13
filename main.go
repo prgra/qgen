@@ -19,7 +19,7 @@ type Report struct {
 }
 
 func main() {
-	db, err := sqlx.Connect("mysql" /* driver name */, os.Getenv("QGEN_MYSQL") /* data source name */)
+	db, err := sqlx.Connect("mysql", os.Getenv("QGEN_MYSQL"))
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
