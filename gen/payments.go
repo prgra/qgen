@@ -32,7 +32,7 @@ type PaymentRow struct {
 	TerminalNumber     string         `db:"-" csv:"TERMINAL_NUMBER"`
 	LATITUDE           string         `db:"-" csv:"LATITUDE"`
 	LONGITUDE          string         `db:"-" csv:"LONGITUDE"`
-	ProjectionType     int            `db:"-" csv:"PROJECTION_TYPE"`
+	ProjectionType     string         `db:"-" csv:"PROJECTION_TYPE"`
 	CenterID           string         `db:"-" csv:"CENTER_ID"`
 	DonatedPhoneNumber string         `db:"-" csv:"DONATED_PHONE_NUMBER"`
 	DonatedAccount     string         `db:"-" csv:"DONATED_ACCOUNT"`
@@ -90,6 +90,7 @@ func (p *PaymentRow) Calc(pmap map[int]int) {
 	p.Country = EnvCountry
 	p.PaymentType = pmap[p.PayTypeID]
 	p.AmountCurrency = p.Amount
+	p.RecordAction = -1
 
 }
 
