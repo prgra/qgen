@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
 	"os"
@@ -15,46 +16,46 @@ import (
 
 // PaymentRow is a row from the PAYMENTS table
 type PaymentRow struct {
-	RegionID           int       `db:"-" csv:"REGION_ID"`
-	PaymentType        int       `db:"-" csv:"PAYMENT_TYPE"`
-	PayTypeID          int       `db:"method" csv:"PAY_TYPE_ID"`
-	PaymentDate        time.Time `db:"date" csv:"PAYMENT_DATE" time:"2006-01-02 15:04:05"`
-	Amount             string    `db:"sum" csv:"AMOUNT"`
-	AmountCurrency     string    `db:"-" csv:"AMOUNT_CURRENCY"`
-	PhoneNumber        string    `db:"phones" csv:"PHONE_NUMBER"`
-	Account            string    `db:"-" csv:"ACCOUNT"`
-	AbonentID          string    `db:"uid" csv:"ABONENT_ID"`
-	BankAccount        string    `db:"-" csv:"BANK_ACCOUNT"`
-	BankName           string    `db:"-" csv:"BANK_NAME"`
-	ExpressCardNumber  string    `db:"-" csv:"EXPRESS_CARD_NUMBER"`
-	TerminalID         string    `db:"-" csv:"TERMINAL_ID"`
-	TerminalNumber     string    `db:"-" csv:"TERMINAL_NUMBER"`
-	LATITUDE           float64   `db:"-" csv:"LATITUDE"`
-	LONGITUDE          float64   `db:"-" csv:"LONGITUDE"`
-	ProjectionType     int       `db:"-" csv:"PROJECTION_TYPE"`
-	CenterID           string    `db:"-" csv:"CENTER_ID"`
-	DonatedPhoneNumber string    `db:"-" csv:"DONATED_PHONE_NUMBER"`
-	DonatedAccount     string    `db:"-" csv:"DONATED_ACCOUNT"`
-	DonatedInternalID1 string    `db:"-" csv:"DONATED_INTERNAL_ID1"`
-	DonatedInternalID2 string    `db:"-" csv:"DONATED_INTERNAL_ID2"`
-	CardNumber         string    `db:"-" csv:"CARD_NUMBER"`
-	PayParams          string    `db:"-" csv:"PAY_PARAMS"`
-	PersonReceived     string    `db:"-" csv:"PERSON_RECIEVED"`
-	BankDivisionName   string    `db:"-" csv:"BANK_DIVISION_NAME"`
-	BankCardID         string    `db:"-" csv:"BANK_CARD_ID"`
-	AddressTypeID      int       `db:"-" csv:"ADDRESS_TYPE_ID"`
-	AddressType        string    `db:"-" csv:"ADDRESS_TYPE"`
-	Zip                string    `db:"-" csv:"ZIP"`
-	Country            string    `db:"-" csv:"COUNTRY"`
-	Region             string    `db:"-" csv:"REGION"`
-	Zone               string    `db:"-" csv:"ZONE"`
-	City               string    `db:"-" csv:"CITY"`
-	Street             string    `db:"-" csv:"STREET"`
-	Building           string    `db:"-" csv:"BUILDING"`
-	BuildSect          string    `db:"-" csv:"BUILD_SECT"`
-	Apartment          string    `db:"-" csv:"APARTMENT"`
-	UnstructInfo       string    `db:"-" csv:"UNSTRUCT_INFO"`
-	RecordAction       int       `db:"-" csv:"RECORD_ACTION"`
+	RegionID           int            `db:"-" csv:"REGION_ID"`
+	PaymentType        int            `db:"-" csv:"PAYMENT_TYPE"`
+	PayTypeID          int            `db:"method" csv:"PAY_TYPE_ID"`
+	PaymentDate        time.Time      `db:"date" csv:"PAYMENT_DATE" time:"2006-01-02 15:04:05"`
+	Amount             string         `db:"sum" csv:"AMOUNT"`
+	AmountCurrency     string         `db:"-" csv:"AMOUNT_CURRENCY"`
+	PhoneNumber        sql.NullString `db:"phone" csv:"PHONE_NUMBER"`
+	Account            string         `db:"bill_id" csv:"ACCOUNT"`
+	AbonentID          string         `db:"uid" csv:"ABONENT_ID"`
+	BankAccount        string         `db:"-" csv:"BANK_ACCOUNT"`
+	BankName           string         `db:"-" csv:"BANK_NAME"`
+	ExpressCardNumber  string         `db:"-" csv:"EXPRESS_CARD_NUMBER"`
+	TerminalID         string         `db:"-" csv:"TERMINAL_ID"`
+	TerminalNumber     string         `db:"-" csv:"TERMINAL_NUMBER"`
+	LATITUDE           string         `db:"-" csv:"LATITUDE"`
+	LONGITUDE          string         `db:"-" csv:"LONGITUDE"`
+	ProjectionType     int            `db:"-" csv:"PROJECTION_TYPE"`
+	CenterID           string         `db:"-" csv:"CENTER_ID"`
+	DonatedPhoneNumber string         `db:"-" csv:"DONATED_PHONE_NUMBER"`
+	DonatedAccount     string         `db:"-" csv:"DONATED_ACCOUNT"`
+	DonatedInternalID1 string         `db:"-" csv:"DONATED_INTERNAL_ID1"`
+	DonatedInternalID2 string         `db:"-" csv:"DONATED_INTERNAL_ID2"`
+	CardNumber         string         `db:"-" csv:"CARD_NUMBER"`
+	PayParams          string         `db:"-" csv:"PAY_PARAMS"`
+	PersonReceived     string         `db:"-" csv:"PERSON_RECIEVED"`
+	BankDivisionName   string         `db:"-" csv:"BANK_DIVISION_NAME"`
+	BankCardID         string         `db:"-" csv:"BANK_CARD_ID"`
+	AddressTypeID      int            `db:"-" csv:"ADDRESS_TYPE_ID"`
+	AddressType        string         `db:"-" csv:"ADDRESS_TYPE"`
+	Zip                string         `db:"-" csv:"ZIP"`
+	Country            string         `db:"-" csv:"COUNTRY"`
+	Region             string         `db:"-" csv:"REGION"`
+	Zone               string         `db:"-" csv:"ZONE"`
+	City               string         `db:"-" csv:"CITY"`
+	Street             string         `db:"-" csv:"STREET"`
+	Building           string         `db:"-" csv:"BUILDING"`
+	BuildSect          string         `db:"-" csv:"BUILD_SECT"`
+	Apartment          string         `db:"-" csv:"APARTMENT"`
+	UnstructInfo       string         `db:"-" csv:"UNSTRUCT_INFO"`
+	RecordAction       int            `db:"-" csv:"RECORD_ACTION"`
 }
 
 // Payments is a generator for PAYMENTS table
@@ -70,8 +71,9 @@ func (a *Payments) Render(db *sqlx.DB) (r []string, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = db.Select(&pays, `SELECT p.date, p.sum, p.method, p.uid, pi.phones from payments p
-		LEFT JOIN users_pi up on up.uid = p.uid
+	err = db.Select(&pays, `SELECT p.date, p.sum, p.method, p.uid, p.bill_id, pi.phone 
+		FROM payments p
+		LEFT JOIN users_pi pi on pi.uid = p.uid
 		where date >= ? order by id`, dta)
 	if err != nil {
 		return nil, err
@@ -87,7 +89,7 @@ func (p *PaymentRow) Calc(pmap map[int]int) {
 	p.RegionID = EnvRegionID
 	p.Country = EnvCountry
 	p.PaymentType = pmap[p.PayTypeID]
-	p.AmountCurrency = "RUB"
+	p.AmountCurrency = p.Amount
 
 }
 
@@ -132,8 +134,4 @@ func LoadPayMethodsMapFromFile(filename string) (r map[int]int, pt []PayTypeRow,
 
 func (a *Payments) GetFileName() string {
 	return fmt.Sprintf("PAYMENT_%s.txt", time.Now().Format("20060102_1504"))
-}
-
-func (a *Payments) Calc() {
-
 }

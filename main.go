@@ -46,15 +46,15 @@ func main() {
 	gen.EnvCountry = os.Getenv("QGEN_COUNTRY")
 
 	var reports = []Report{
-		// {&gen.DocType{}, 1},
-		// {&gen.Abons{}, 2},
-		// {&gen.AbonIdent{}, 3},
-		// {&gen.AbonAddr{}, 4},
-		// {&gen.Region{}, 5},
+		{&gen.DocType{}, 1},
+		{&gen.Abons{}, 2},
+		{&gen.AbonIdent{}, 3},
+		{&gen.AbonAddr{}, 4},
+		{&gen.Region{}, 5},
 		{&gen.PayTypes{}, 6},
-		// {&gen.Supplementary{}, 7},
-		// {&gen.IPPlan{}, 8},
-		// {&gen.GateWay{}, 9},
+		{&gen.Supplementary{}, 7},
+		{&gen.IPPlan{}, 8},
+		{&gen.GateWay{}, 9},
 		{&gen.Payments{}, 10},
 	}
 	for _, r := range reports {

@@ -61,17 +61,22 @@ type AbonIdentRow struct {
 
 func (a *AbonIdent) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonIdentRow //
+	dta := EnvInitDate.Format("2006-01-02")
+	if EnvOnlyOneDay {
+		dta = time.Now().Format("2006-01-02")
+	}
 	err = db.Select(&abons, `select u.uid, 
 -- pi.contract_date,
 pi.email,
 INET_NTOA(dv.ip) as ip,
 INET_NTOA(dv.netmask) as mask,
 dh.mac,
-(select datetime from 
-	admin_actions where uid=u.uid order by id limit 1) as attach
+aa1.datetime as attach
 from 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
+LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
+	where uid=u.uid order by id limit 1)
 LEFT JOIN users_pi pi ON pi.uid=u.uid 
 LEFT JOIN builds b ON b.id=pi.location_id
 LEFT JOIN streets s ON s.id=b.street_id
@@ -79,7 +84,7 @@ LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 LEFT JOIN dhcphosts_hosts dh ON dh.uid=u.uid
 JOIN tarif_plans tp ON tp.id=dv.tp_id
-`)
+WHERE aa1.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
 	}
