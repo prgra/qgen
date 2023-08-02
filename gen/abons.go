@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -49,7 +50,7 @@ type AbonRow struct {
 	Detach               sql.NullTime   `db:"detach" csv:"DETACH" time:"2006-01-02 15:04:05"`               // DETACH
 	NetworkType          int            `db:"-" csv:"NETWORK_TYPE"`                                         // NETWORK_TYPE
 	RecordAction         string         `db:"-" csv:"RECORD_ACTION"`                                        // RECORD_ACTION
-	InternalID1          string         `db:"uid" csv:"INTERNAL_ID1"`                                       // INTERNAL_ID1
+	InternalID1          string         `db:"-" csv:"INTERNAL_ID1"`                                         // INTERNAL_ID1
 }
 
 func (a *Abons) Render(db *sqlx.DB) (r []string, err error) { //
@@ -137,7 +138,10 @@ func (r *AbonRow) Calc() {
 	if r.CDate.IsZero() {
 		r.CDate = EnvInitDate
 	}
-
+	if r.Company > 0 {
+		r.InternalID1 = strconv.Itoa(r.Company)
+		r.AbonID = 0
+	}
 }
 
 func IsUrLico(s string) bool {

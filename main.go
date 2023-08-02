@@ -21,7 +21,7 @@ type Report struct {
 func main() {
 	db, err := sqlx.Connect("mysql", os.Getenv("QGEN_MYSQL"))
 	if err != nil {
-		log.Println(err)
+		log.Println("mysql", err)
 		os.Exit(1)
 	}
 	if os.Getenv("QGEN_NAMES") != "" {
@@ -56,6 +56,7 @@ func main() {
 		{&gen.IPPlan{}, 8},
 		{&gen.GateWay{}, 9},
 		{&gen.Payments{}, 10},
+		{&gen.AbonUsers{}, 11},
 	}
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, db)
