@@ -84,7 +84,7 @@ LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 LEFT JOIN dhcphosts_hosts dh ON dh.uid=u.uid
 JOIN tarif_plans tp ON tp.id=dv.tp_id
-WHERE aa1.datetime >= ?`, dta)
+WHERE u.company_id = 0 AND aa1.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
 	}

@@ -40,6 +40,10 @@ type AbonAddr struct{}
 
 func (a *AbonAddr) Render(db *sqlx.DB) (r []string, err error) { //
 	var abons []AbonAddrRow //
+	dta := EnvInitDate.Format("2006-01-02")
+	if EnvOnlyOneDay {
+		dta = time.Now().Format("2006-01-02")
+	}
 	err = db.Select(&abons, `SELECT u.uid, 
 d.name as dist,
 d.comments,
@@ -58,7 +62,9 @@ LEFT JOIN districts d ON d.id=s.district_id
 LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 JOIN tarif_plans tp ON tp.id=dv.tp_id
-`)
+LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
+	where uid=u.uid order by id limit 1)
+WHERE u.company_id = 0 AND aa1.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
 	}
