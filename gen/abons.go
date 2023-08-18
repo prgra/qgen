@@ -15,7 +15,7 @@ type Abons struct {
 }
 
 type AbonRow struct {
-	AbonID               int            `db:"-" csv:"ID"`                                                   // ID
+	AbonID               string         `db:"-" csv:"ID"`                                                   // ID
 	RegionID             int            `db:"-" csv:"REGION_ID"`                                            // REGION_ID
 	CDate                time.Time      `db:"contract_date" csv:"CONTRACT_DATE" time:"2006-01-02 15:04:05"` // CONTRACT_DATE
 	Login                string         `db:"id" csv:"CONTRACT"`                                            // CONTRACT
@@ -118,12 +118,11 @@ func (a *Abons) GetFileName() string {
 
 var passportRe = regexp.MustCompile(`\D+`)
 
-func (r *AbonRow) UrFizCalc() int {
+func (r *AbonRow) UrFizCalc() {
 	r.AbonType = 42
 	if r.Company > 0 || IsUrLico(r.FIO) {
 		r.AbonType = 43
 	}
-	return r.AbonID
 }
 
 func (r *AbonRow) Calc() {

@@ -13,7 +13,7 @@ import (
 type AbonIdent struct{}
 
 type AbonIdentRow struct {
-	AbonID            int            `db:"-" csv:"ABONENT_ID"`
+	AbonID            string         `db:"-" csv:"ABONENT_ID"`
 	RegionID          int            `db:"-" csv:"REGION_ID"`
 	IdentType         int            `db:"-" csv:"IDENT_TYPE"`
 	Phone             string         `db:"-" csv:"PHONE"`

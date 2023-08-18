@@ -90,7 +90,7 @@ func (p *PaymentRow) Calc(pmap map[int]int) {
 	p.Country = EnvCountry
 	p.PaymentType = pmap[p.PayTypeID]
 	p.AmountCurrency = p.Amount
-	p.RecordAction = -1
+	p.RecordAction = 1
 
 }
 

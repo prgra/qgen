@@ -14,7 +14,7 @@ import (
 )
 
 type AbonAddrRow struct {
-	AbonentID     int            `db:"-" csv:"ABONENT_ID"`
+	AbonentID     string         `db:"-" csv:"ABONENT_ID"`
 	RegionID      int            `db:"-" csv:"REGION_ID"`
 	AddressTypeID int            `db:"-" csv:"ADDRESS_TYPE_ID"`
 	AddressType   int            `db:"-" csv:"ADDRESS_TYPE"`
