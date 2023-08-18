@@ -17,7 +17,8 @@ type AbonUsersRow struct {
 	UserNumber   string `db:"phone" csv:"USER_NUMBER"`
 	UserName     string `db:"fio" csv:"USER_NAME"`
 	RecordAction int    `csv:"RECORD_ACTION"`
-	InternalID1  string `db:"id" csv:"INTERNAL_ID1"`
+	InternalID1  string `db:"uid" csv:"INTERNAL_ID1"`
+	Company      int    `db:"company_id" csv:"-"`
 }
 
 func (a *AbonUsers) Render(db *sqlx.DB) (r []string, err error) { //
@@ -26,7 +27,7 @@ func (a *AbonUsers) Render(db *sqlx.DB) (r []string, err error) { //
 	if EnvOnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
-	err = db.Select(&abons, `SELECT c.id as id, pi.fio as fio, pi.phone as phone FROM companies c
+	err = db.Select(&abons, `SELECT u.company_id, u.uid, pi.fio as fio, pi.phone as phone FROM companies c
 	JOIN users u ON u.company_id = c.id
 	JOIN users_pi pi on u.uid = pi.uid and c.registration >= ?`, dta)
 	if err != nil {
@@ -44,5 +45,7 @@ func (a *AbonUsers) GetFileName() string {
 }
 
 func (r *AbonUsersRow) Calc() {
+	r.InternalID1 = fmt.Sprintf("%s%d", EnvCompanyCode, r.Company)
 	r.RegionID = EnvRegionID
+	r.RecordAction = 1
 }

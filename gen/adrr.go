@@ -14,7 +14,7 @@ import (
 )
 
 type AbonAddrRow struct {
-	AbonentID     int            `db:"uid" csv:"ABONENT_ID"`
+	AbonentID     int            `db:"-" csv:"ABONENT_ID"`
 	RegionID      int            `db:"-" csv:"REGION_ID"`
 	AddressTypeID int            `db:"-" csv:"ADDRESS_TYPE_ID"`
 	AddressType   int            `db:"-" csv:"ADDRESS_TYPE"`
@@ -31,9 +31,10 @@ type AbonAddrRow struct {
 	BeginTime     time.Time      `db:"-" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
 	EndTime       time.Time      `db:"-" csv:"END_TIME" time:"2006-01-02 15:04:05"`
 	RecordAction  string         `db:"-" csv:"RECORD_ACTION"`
-	InternalID1   string         `db:"-" csv:"INTERNAL_ID1"`
+	InternalID1   string         `db:"uid" csv:"INTERNAL_ID1"`
 	InternalID2   string         `db:"-" csv:"INTERNAL_ID2"`
 	Descr         sql.NullString `db:"comments" csv:"-"`
+	Company       int            `db:"company_id" csv:"-"`
 }
 
 type AbonAddr struct{}
@@ -50,8 +51,8 @@ d.comments,
 d.zip as zip,
 s.name as street,
 b.number as build,
-pi.address_flat as flat
-
+pi.address_flat as flat,
+u.company_id
 FROM 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
@@ -64,7 +65,7 @@ LEFT JOIN companies c ON c.id=u.company_id
 JOIN tarif_plans tp ON tp.id=dv.tp_id
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
 	where uid=u.uid order by id limit 1)
-WHERE u.company_id = 0 AND aa1.datetime >= ?`, dta)
+WHERE aa1.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +89,9 @@ type addrInfo struct {
 }
 
 func (a *AbonAddrRow) Calc(ainf addrInfo) {
+	if a.Company > 0 {
+		a.InternalID1 = fmt.Sprintf("%s%d", EnvCompanyCode, a.Company)
+	}
 	a.Country = EnvCountry
 	a.AddressTypeID = 0
 	a.RegionID = EnvRegionID

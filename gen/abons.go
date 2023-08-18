@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,7 +15,7 @@ type Abons struct {
 }
 
 type AbonRow struct {
-	AbonID               int            `db:"uid" csv:"ID"`                                                 // ID
+	AbonID               int            `db:"-" csv:"ID"`                                                   // ID
 	RegionID             int            `db:"-" csv:"REGION_ID"`                                            // REGION_ID
 	CDate                time.Time      `db:"contract_date" csv:"CONTRACT_DATE" time:"2006-01-02 15:04:05"` // CONTRACT_DATE
 	Login                string         `db:"id" csv:"CONTRACT"`                                            // CONTRACT
@@ -41,7 +40,7 @@ type AbonRow struct {
 	IdentCardUnstruct    string         `db:"pasport" csv:"IDENT_CARD_UNSTRUCT"`                            // IDENT_CARD_UNSTRUCT
 	Bank                 string         `db:"-" csv:"BANK"`                                                 // BANK
 	BankAccount          string         `db:"-" csv:"BANK_ACCOUNT"`                                         // BANK_ACCOUNT
-	FullName             sql.NullString `db:"compname" csv:"FULL_NAME"`                                     // FULL_NAME
+	FullName             sql.NullString `db:"-" csv:"FULL_NAME"`                                            // FULL_NAME
 	INN                  string         `db:"-" csv:"INN"`                                                  // INN
 	Contact              string         `db:"-" csv:"CONTACT"`                                              // CONTACT
 	PhoneFax             string         `db:"phone" csv:"PHONE_FAX"`                                        // PHONE_FAX
@@ -50,7 +49,8 @@ type AbonRow struct {
 	Detach               sql.NullTime   `db:"detach" csv:"DETACH" time:"2006-01-02 15:04:05"`               // DETACH
 	NetworkType          int            `db:"-" csv:"NETWORK_TYPE"`                                         // NETWORK_TYPE
 	RecordAction         string         `db:"-" csv:"RECORD_ACTION"`                                        // RECORD_ACTION
-	InternalID1          string         `db:"-" csv:"INTERNAL_ID1"`                                         // INTERNAL_ID1
+	InternalID1          string         `db:"uid" csv:"INTERNAL_ID1"`                                       // INTERNAL_ID1
+	CompanyName          sql.NullString `db:"compname" csv:"-"`
 }
 
 func (a *Abons) Render(db *sqlx.DB) (r []string, err error) { //
@@ -86,10 +86,27 @@ LEFT JOIN companies c ON c.id=u.company_id
 JOIN tarif_plans tp ON tp.id=dv.tp_id
 WHERE aa1.datetime >= ?`, dta)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
+	additional := make(map[int]AbonRow)
 	for i := range abons {
+		abons[i].UrFizCalc()
+		if abons[i].Company > 0 {
+			r := abons[i]
+			r.AbonType = 42
+			key := fmt.Sprintf("%s%d", EnvCompanyCode, r.Company)
+			r.InternalID1 = key
+			abons[i].InternalID1 = key
+			r.Company = 0
+			r.Calc()
+			additional[r.Company] = r
+		}
 		abons[i].Calc()
+
+	}
+	for k := range additional {
+		abons = append(abons, additional[k])
 	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
@@ -101,13 +118,23 @@ func (a *Abons) GetFileName() string {
 
 var passportRe = regexp.MustCompile(`\D+`)
 
-func (r *AbonRow) Calc() {
-	r.ActualFrom = r.Attach.Time
+func (r *AbonRow) UrFizCalc() int {
 	r.AbonType = 42
 	if r.Company > 0 || IsUrLico(r.FIO) {
 		r.AbonType = 43
-		r.FullName.String = r.FIO
-		r.FullName.Valid = true
+	}
+	return r.AbonID
+}
+
+func (r *AbonRow) Calc() {
+	r.ActualFrom = r.Attach.Time
+	if r.AbonType == 43 {
+		if r.CompanyName.Valid {
+			r.FullName = r.CompanyName
+		} else {
+			r.FullName.String = r.FIO
+			r.FullName.Valid = true
+		}
 		r.FIO = ""
 	}
 	if r.Status == 0 {
@@ -121,27 +148,35 @@ func (r *AbonRow) Calc() {
 	r.IdentCardType = 1
 	// r.InternalID1 = fmt.Sprintf("%d", r.AbonID)
 	r.NetworkType = 4
-	pn := string(passportRe.ReplaceAll([]byte(r.IdentCardNumber), []byte("")))
-	if len(pn) == 10 && !r.SPassportDate.IsZero() {
-		r.IdentCardType = 0
-		r.IdentCardSerial = pn[:4]
-		r.IdentCardNumber = pn[4:]
-		r.IdentCardDescription = fmt.Sprintf("%s %s", r.SPassportDate.Format("2006-01-02"), r.IdentCardDescription)
-		r.IdentCardUnstruct = ""
+	if r.AbonType == 42 {
+		pn := string(passportRe.ReplaceAll([]byte(r.IdentCardNumber), []byte("")))
+		if len(pn) == 10 && !r.SPassportDate.IsZero() {
+			r.IdentCardType = 0
+			r.IdentCardSerial = pn[:4]
+			r.IdentCardNumber = pn[4:]
+			r.IdentCardDescription = fmt.Sprintf("%s %s", r.SPassportDate.Format("2006-01-02"), r.IdentCardDescription)
+			r.IdentCardUnstruct = ""
+		} else {
+			r.IdentCardSerial = ""
+			r.IdentCardNumber = ""
+			r.IdentCardDescription = ""
+			r.IdentCardTypeID = 2
+		}
 	} else {
 		r.IdentCardSerial = ""
 		r.IdentCardNumber = ""
 		r.IdentCardDescription = ""
-		r.IdentCardTypeID = 2
+		r.IdentCardTypeID = 0
+		r.IdentCardUnstruct = ""
 	}
 	r.RegionID = EnvRegionID
 	if r.CDate.IsZero() {
 		r.CDate = EnvInitDate
 	}
-	if r.Company > 0 {
-		r.InternalID1 = strconv.Itoa(r.Company)
-		r.AbonID = 0
-	}
+	// if r.Company > 0 {
+	// 	r.InternalID1 = strconv.Itoa(r.Company)
+	// 	r.AbonID = 0
+	// }
 }
 
 func IsUrLico(s string) bool {

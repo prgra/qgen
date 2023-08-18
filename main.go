@@ -31,6 +31,10 @@ func main() {
 			os.Exit(2)
 		}
 	}
+	gen.EnvCompanyCode = "720000"
+	if os.Getenv("QGEN_URPREF") != "" {
+		gen.EnvCompanyCode = os.Getenv("QGEN_URPREF")
+	}
 	gen.EnvRegionID, _ = strconv.Atoi(os.Getenv("QGEN_REGION_ID"))
 	gen.EnvRegionName = os.Getenv("QGEN_REGION_NAME")
 	if gen.EnvRegionName == "" {

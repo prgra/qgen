@@ -13,7 +13,7 @@ import (
 type AbonIdent struct{}
 
 type AbonIdentRow struct {
-	AbonID            int            `db:"uid" csv:"ABONENT_ID"`
+	AbonID            int            `db:"-" csv:"ABONENT_ID"`
 	RegionID          int            `db:"-" csv:"REGION_ID"`
 	IdentType         int            `db:"-" csv:"IDENT_TYPE"`
 	Phone             string         `db:"-" csv:"PHONE"`
@@ -55,8 +55,9 @@ type AbonIdentRow struct {
 	LocLongitude      string         `db:"-" csv:"LOC_LONGITUDE"`
 	LocProjectionType string         `db:"-" csv:"LOC_PROJECTION_TYPE"`
 	RecordAction      string         `db:"-" csv:"RECORD_ACTION"`
-	InternalID1       string         `db:"-" csv:"INTERNAL_ID1"`
+	InternalID1       string         `db:"uid" csv:"INTERNAL_ID1"`
 	InternalID2       string         `db:"-" csv:"INTERNAL_ID2"`
+	Company           int            `db:"company_id" csv:"-"`
 }
 
 func (a *AbonIdent) Render(db *sqlx.DB) (r []string, err error) { //
@@ -68,6 +69,7 @@ func (a *AbonIdent) Render(db *sqlx.DB) (r []string, err error) { //
 	err = db.Select(&abons, `select u.uid, 
 -- pi.contract_date,
 pi.email,
+u.company_id,
 INET_NTOA(dv.ip) as ip,
 INET_NTOA(dv.netmask) as mask,
 dh.mac,
@@ -84,7 +86,7 @@ LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 LEFT JOIN dhcphosts_hosts dh ON dh.uid=u.uid
 JOIN tarif_plans tp ON tp.id=dv.tp_id
-WHERE u.company_id = 0 AND aa1.datetime >= ?`, dta)
+WHERE aa1.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +102,9 @@ func (a *AbonIdent) GetFileName() string {
 }
 
 func (a *AbonIdentRow) Calc() {
+	if a.Company > 0 {
+		a.InternalID1 = fmt.Sprintf("%s%d", EnvCompanyCode, a.Company)
+	}
 	a.RegionID = EnvRegionID
 	a.IdentType = 5
 	a.EquipmentType = 0

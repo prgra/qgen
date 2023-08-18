@@ -11,11 +11,12 @@ import (
 )
 
 var (
-	EnvRegionName string
-	EnvCountry    string
-	EnvRegionID   int
-	EnvInitDate   time.Time
-	EnvOnlyOneDay bool
+	EnvRegionName  string
+	EnvCountry     string
+	EnvRegionID    int
+	EnvInitDate    time.Time
+	EnvOnlyOneDay  bool
+	EnvCompanyCode string
 )
 
 type Generator interface {
