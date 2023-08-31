@@ -31,8 +31,8 @@ type AbonRow struct {
 	FIO                  string         `db:"fio" csv:"UNSTRUCT_NAME"`                                      // UNSTRUCT_NAME
 	BirthDate            time.Time      `db:"-" csv:"BIRTH_DATE" time:"2006-01-02"`                         // BIRTH_DATE
 	SBirthDate           string         `db:"_birth_date" csv:"-"`                                          // BIRTH_DATE
-	IdentCardTypeID      int            `db:"-" csv:"IDENT_CARD_TYPE_ID"`                                   // IDENT_CARD_TYPE_ID
-	IdentCardType        int            `db:"-" csv:"IDENT_CARD_TYPE"`                                      // IDENT_CARD_TYPE
+	IdentCardTypeID      sql.NullInt64  `db:"-" csv:"IDENT_CARD_TYPE_ID"`                                   // IDENT_CARD_TYPE_ID
+	IdentCardType        sql.NullInt64  `db:"-" csv:"IDENT_CARD_TYPE"`                                      // IDENT_CARD_TYPE
 	IdentCardSerial      string         `db:"-" csv:"IDENT_CARD_SERIAL"`                                    // IDENT_CARD_SERIAL
 	SPassportDate        time.Time      `db:"pasport_date" csv:"-"`                                         // SPassportDate для формирования паспорта
 	IdentCardNumber      string         `db:"pasport_num" csv:"IDENT_CARD_NUMBER"`                          // IDENT_CARD_NUMBER
@@ -143,14 +143,16 @@ func (r *AbonRow) Calc() {
 		r.Status = 1
 	}
 	r.NameInfoType = 1
-	r.IdentCardTypeID = 1
-	r.IdentCardType = 1
+	r.IdentCardTypeID.Int64 = 1
+	r.IdentCardTypeID.Valid = true
+	r.IdentCardType.Int64 = 1
+	r.IdentCardType.Valid = true
 	// r.InternalID1 = fmt.Sprintf("%d", r.AbonID)
 	r.NetworkType = 4
 	if r.AbonType == 42 {
 		pn := string(passportRe.ReplaceAll([]byte(r.IdentCardNumber), []byte("")))
 		if len(pn) == 10 && !r.SPassportDate.IsZero() {
-			r.IdentCardType = 0
+			r.IdentCardType.Valid = false
 			r.IdentCardSerial = pn[:4]
 			r.IdentCardNumber = pn[4:]
 			r.IdentCardDescription = fmt.Sprintf("%s %s", r.SPassportDate.Format("2006-01-02"), r.IdentCardDescription)
@@ -159,13 +161,14 @@ func (r *AbonRow) Calc() {
 			r.IdentCardSerial = ""
 			r.IdentCardNumber = ""
 			r.IdentCardDescription = ""
-			r.IdentCardTypeID = 2
+			r.IdentCardTypeID.Int64 = 2
+			r.IdentCardTypeID.Valid = true
 		}
 	} else {
 		r.IdentCardSerial = ""
 		r.IdentCardNumber = ""
 		r.IdentCardDescription = ""
-		r.IdentCardTypeID = 0
+		r.IdentCardTypeID.Valid = false
 		r.IdentCardUnstruct = ""
 	}
 	r.RegionID = EnvRegionID
