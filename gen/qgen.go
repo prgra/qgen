@@ -19,9 +19,9 @@ func WriteToFile(g Generator, cfg Config, db *sqlx.DB) error {
 	if err != nil {
 		return err
 	}
-	ouf := p + "/" + os.Getenv("QGEN_PATH") + "/" + g.GetFileName()
-	if strings.HasPrefix(os.Getenv("QGEN_PATH"), "/") {
-		ouf = os.Getenv("QGEN_PATH") + "/" + g.GetFileName()
+	ouf := p + "/" + cfg.Path + "/" + g.GetFileName()
+	if strings.HasPrefix(cfg.Path, "/") {
+		ouf = cfg.Path + "/" + g.GetFileName()
 	}
 	f, err := os.Create(path.Clean(ouf))
 	if err != nil {
