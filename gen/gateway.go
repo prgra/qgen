@@ -31,13 +31,13 @@ type GateWayRow struct {
 
 type GateWay struct{}
 
-func (a *GateWay) Render(db *sqlx.DB) (r []string, err error) {
+func (a *GateWay) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	gt := []GateWayRow{
 		{
 			GateID:      1,
-			BeginTime:   EnvInitDate,
+			BeginTime:   cfg.InitDate,
 			Description: "NAS",
-			RegionID:    EnvRegionID,
+			RegionID:    cfg.RegionID,
 		},
 	}
 

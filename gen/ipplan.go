@@ -22,7 +22,7 @@ type IPPlanRow struct {
 
 type IPPlan struct{}
 
-func (a *IPPlan) Render(db *sqlx.DB) (r []string, err error) {
+func (a *IPPlan) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	var plan []IPPlanRow
 	err = db.Select(&plan, `select INET_NTOA(network) as network,
 		INET_NTOA(mask) as mask,
@@ -31,7 +31,7 @@ func (a *IPPlan) Render(db *sqlx.DB) (r []string, err error) {
 		return nil, err
 	}
 	for i := range plan {
-		plan[i].Calc()
+		plan[i].Calc(cfg)
 	}
 	r = csv.MarshalCSV(plan, ";", "")
 	return r, nil
@@ -41,10 +41,10 @@ func (a *IPPlan) GetFileName() string {
 	return fmt.Sprintf("IP_PLAN_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (a *IPPlanRow) Calc() {
+func (a *IPPlanRow) Calc(cfg Config) {
 	a.IPType = 0
-	a.RegionID = EnvRegionID
-	a.BeginTime = EnvInitDate
+	a.RegionID = cfg.RegionID
+	a.BeginTime = cfg.InitDate
 	if a.IPv4 != "" && a.IPv4Mask != "" {
 		a.IPv4 = MakeIP(a.IPv4)
 		a.IPv4Mask = MakeIP(a.IPv4Mask)

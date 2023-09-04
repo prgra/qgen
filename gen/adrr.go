@@ -39,10 +39,10 @@ type AbonAddrRow struct {
 
 type AbonAddr struct{}
 
-func (a *AbonAddr) Render(db *sqlx.DB) (r []string, err error) { //
+func (a *AbonAddr) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
 	var abons []AbonAddrRow //
-	dta := EnvInitDate.Format("2006-01-02")
-	if EnvOnlyOneDay {
+	dta := cfg.InitDate.Format("2006-01-02")
+	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
 	err = db.Select(&abons, `SELECT u.uid, 
@@ -72,7 +72,7 @@ WHERE aa1.datetime >= ?`, dta)
 	var ainf addrInfo
 	for i := range abons {
 		json.Unmarshal([]byte(abons[i].Descr.String), &ainf)
-		abons[i].Calc(ainf)
+		abons[i].Calc(ainf, cfg)
 	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
@@ -88,14 +88,14 @@ type addrInfo struct {
 	Zone    string `json:"zone"`
 }
 
-func (a *AbonAddrRow) Calc(ainf addrInfo) {
+func (a *AbonAddrRow) Calc(ainf addrInfo, cfg Config) {
 	if a.Company > 0 {
-		a.InternalID1 = fmt.Sprintf("%s%d", EnvCompanyCode, a.Company)
+		a.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, a.Company)
 	}
-	a.Country = EnvCountry
+	a.Country = cfg.Country
 	a.AddressTypeID = 0
-	a.RegionID = EnvRegionID
-	a.BeginTime = EnvInitDate
+	a.RegionID = cfg.RegionID
+	a.BeginTime = cfg.InitDate
 	a.Country = ainf.Country
 	a.Zone = ainf.Zone
 	a.Region = ainf.Region

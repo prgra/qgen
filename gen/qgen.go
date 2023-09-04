@@ -5,26 +5,16 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
-var (
-	EnvRegionName  string
-	EnvCountry     string
-	EnvRegionID    int
-	EnvInitDate    time.Time
-	EnvOnlyOneDay  bool
-	EnvCompanyCode string
-)
-
 type Generator interface {
-	Render(*sqlx.DB) ([]string, error)
+	Render(*sqlx.DB, Config) ([]string, error)
 	GetFileName() string
 }
 
-func WriteToFile(g Generator, db *sqlx.DB) error {
+func WriteToFile(g Generator, cfg Config, db *sqlx.DB) error {
 	p, err := os.Getwd()
 	if err != nil {
 		return err
@@ -39,7 +29,7 @@ func WriteToFile(g Generator, db *sqlx.DB) error {
 	}
 	defer f.Close()
 
-	r, err := g.Render(db)
+	r, err := g.Render(db, cfg)
 	if err != nil {
 		return err
 	}

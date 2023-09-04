@@ -21,10 +21,10 @@ type AbonUsersRow struct {
 	Company      int    `db:"company_id" csv:"-"`
 }
 
-func (a *AbonUsers) Render(db *sqlx.DB) (r []string, err error) { //
+func (a *AbonUsers) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
 	var abons []AbonUsersRow //
-	dta := EnvInitDate.Format("2006-01-02")
-	if EnvOnlyOneDay {
+	dta := cfg.InitDate.Format("2006-01-02")
+	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
 	err = db.Select(&abons, `SELECT u.company_id, u.uid, pi.fio as fio, pi.phone as phone FROM companies c
@@ -34,7 +34,7 @@ func (a *AbonUsers) Render(db *sqlx.DB) (r []string, err error) { //
 		return nil, err
 	}
 	for i := range abons {
-		abons[i].Calc()
+		abons[i].Calc(cfg)
 	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
@@ -44,8 +44,8 @@ func (a *AbonUsers) GetFileName() string {
 	return fmt.Sprintf("ABONENT_USER_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (r *AbonUsersRow) Calc() {
-	r.InternalID1 = fmt.Sprintf("%s%d", EnvCompanyCode, r.Company)
-	r.RegionID = EnvRegionID
+func (r *AbonUsersRow) Calc(cfg Config) {
+	r.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, r.Company)
+	r.RegionID = cfg.RegionID
 	r.RecordAction = 1
 }

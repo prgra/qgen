@@ -61,13 +61,13 @@ type PaymentRow struct {
 // Payments is a generator for PAYMENTS table
 type Payments struct{}
 
-func (a *Payments) Render(db *sqlx.DB) (r []string, err error) {
+func (a *Payments) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	var pays []PaymentRow
-	dta := EnvInitDate.Format("2006-01-02")
-	if EnvOnlyOneDay {
+	dta := cfg.InitDate.Format("2006-01-02")
+	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
-	pmap, _, err := LoadPayMethodsMapFromFile("paymethods.map")
+	pmap, _, err := LoadPayMethodsMapFromFile("paymethods.map", cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -79,15 +79,15 @@ func (a *Payments) Render(db *sqlx.DB) (r []string, err error) {
 		return nil, err
 	}
 	for i := range pays {
-		pays[i].Calc(pmap)
+		pays[i].Calc(pmap, cfg)
 	}
 	r = csv.MarshalCSV(pays, ";", "")
 	return r, nil
 }
 
-func (p *PaymentRow) Calc(pmap map[int]int) {
-	p.RegionID = EnvRegionID
-	p.Country = EnvCountry
+func (p *PaymentRow) Calc(pmap map[int]int, cfg Config) {
+	p.RegionID = cfg.RegionID
+	p.Country = cfg.Country
 	p.PaymentType = pmap[p.PayTypeID]
 	p.AmountCurrency = p.Amount
 	p.RecordAction = 1
@@ -102,7 +102,7 @@ func (p *PaymentRow) Calc(pmap map[int]int) {
 // 3:80:Credit Card
 // 4:86:Бонус
 // 5:86:Корректировка
-func LoadPayMethodsMapFromFile(filename string) (r map[int]int, pt []PayTypeRow, err error) {
+func LoadPayMethodsMapFromFile(filename string, cfg Config) (r map[int]int, pt []PayTypeRow, err error) {
 	f, err := os.Open(filepath.Clean(filename))
 	if err != nil {
 		return nil, nil, err
@@ -126,8 +126,8 @@ func LoadPayMethodsMapFromFile(filename string) (r map[int]int, pt []PayTypeRow,
 		var p PayTypeRow
 		p.ID = i1
 		p.Descr = fmt.Sprintf(a[2])
-		p.BeginTime = EnvInitDate
-		p.RegionID = EnvRegionID
+		p.BeginTime = cfg.InitDate
+		p.RegionID = cfg.RegionID
 		pt = append(pt, p)
 	}
 	return r, pt, nil

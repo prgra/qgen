@@ -60,10 +60,10 @@ type AbonIdentRow struct {
 	Company           int            `db:"company_id" csv:"-"`
 }
 
-func (a *AbonIdent) Render(db *sqlx.DB) (r []string, err error) { //
+func (a *AbonIdent) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
 	var abons []AbonIdentRow //
-	dta := EnvInitDate.Format("2006-01-02")
-	if EnvOnlyOneDay {
+	dta := cfg.InitDate.Format("2006-01-02")
+	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
 	err = db.Select(&abons, `select u.uid, 
@@ -91,7 +91,7 @@ WHERE aa1.datetime >= ?`, dta)
 		return nil, err
 	}
 	for i := range abons {
-		abons[i].Calc()
+		abons[i].Calc(cfg)
 	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
@@ -101,11 +101,11 @@ func (a *AbonIdent) GetFileName() string {
 	return fmt.Sprintf("ABONENT_IDENT_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (a *AbonIdentRow) Calc() {
+func (a *AbonIdentRow) Calc(cfg Config) {
 	if a.Company > 0 {
-		a.InternalID1 = fmt.Sprintf("%s%d", EnvCompanyCode, a.Company)
+		a.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, a.Company)
 	}
-	a.RegionID = EnvRegionID
+	a.RegionID = cfg.RegionID
 	a.IdentType = 5
 	a.EquipmentType = 0
 	a.IPType = 0

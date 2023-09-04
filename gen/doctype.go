@@ -16,21 +16,22 @@ type DocTypeRow struct {
 	RegionID    int       `csv:"REGION_ID"`
 }
 
-type DocType struct{}
+type DocType struct {
+}
 
-func (a *DocType) Render(db *sqlx.DB) (r []string, err error) {
+func (a *DocType) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	regions := []DocTypeRow{
 		{
 			DocTypeID:   1,
-			BeginTime:   EnvInitDate,
+			BeginTime:   cfg.InitDate,
 			Description: "паспорт",
-			RegionID:    EnvRegionID,
+			RegionID:    cfg.RegionID,
 		},
 		{
 			DocTypeID:   2,
-			BeginTime:   EnvInitDate,
+			BeginTime:   cfg.InitDate,
 			Description: "другое",
-			RegionID:    EnvRegionID,
+			RegionID:    cfg.RegionID,
 		},
 	}
 

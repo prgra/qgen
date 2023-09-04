@@ -53,10 +53,10 @@ type AbonRow struct {
 	CompanyName          sql.NullString `db:"compname" csv:"-"`
 }
 
-func (a *Abons) Render(db *sqlx.DB) (r []string, err error) { //
+func (a *Abons) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
 	var abons []AbonRow //
-	dta := EnvInitDate.Format("2006-01-02")
-	if EnvOnlyOneDay {
+	dta := cfg.InitDate.Format("2006-01-02")
+	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
 	err = db.Select(&abons, `select u.uid, 
@@ -95,14 +95,14 @@ WHERE aa1.datetime >= ?`, dta)
 		if abons[i].Company > 0 {
 			r := abons[i]
 			r.AbonType = 42
-			key := fmt.Sprintf("%s%d", EnvCompanyCode, r.Company)
+			key := fmt.Sprintf("%s%d", cfg.CompanyCode, r.Company)
 			r.InternalID1 = key
 			abons[i].InternalID1 = key
 			r.Company = 0
-			r.Calc()
+			r.Calc(cfg)
 			additional[r.Company] = r
 		}
-		abons[i].Calc()
+		abons[i].Calc(cfg)
 
 	}
 	for k := range additional {
@@ -125,7 +125,7 @@ func (r *AbonRow) UrFizCalc() {
 	}
 }
 
-func (r *AbonRow) Calc() {
+func (r *AbonRow) Calc(cfg Config) {
 	r.ActualFrom = r.Attach.Time
 	if r.AbonType == 43 {
 		if r.CompanyName.Valid {
@@ -171,9 +171,9 @@ func (r *AbonRow) Calc() {
 		r.IdentCardTypeID.Valid = false
 		r.IdentCardUnstruct = ""
 	}
-	r.RegionID = EnvRegionID
+	r.RegionID = cfg.RegionID
 	if r.CDate.IsZero() {
-		r.CDate = EnvInitDate
+		r.CDate = cfg.InitDate
 	}
 	// if r.Company > 0 {
 	// 	r.InternalID1 = strconv.Itoa(r.Company)

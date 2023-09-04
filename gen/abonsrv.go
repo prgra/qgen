@@ -24,10 +24,10 @@ type AbonSrvRow struct {
 	InternalID2  string        `db:"" csv:"INTERNAL_ID2"`
 }
 
-func (a *AbonIdent) AbonSrv(db *sqlx.DB) (r []string, err error) { //
+func (a *AbonIdent) AbonSrv(db *sqlx.DB, cfg Config) (r []string, err error) { //
 	var abons []AbonSrvRow //
-	dta := EnvInitDate.Format("2006-01-02")
-	if EnvOnlyOneDay {
+	dta := cfg.InitDate.Format("2006-01-02")
+	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
 	err = db.Select(&abons, `select u.uid, 
@@ -42,7 +42,7 @@ WHERE aa1.datetime >= ?`, dta)
 		return nil, err
 	}
 	for i := range abons {
-		abons[i].Calc()
+		abons[i].Calc(cfg)
 	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
@@ -52,9 +52,9 @@ func (a *AbonSrv) GetFileName() string {
 	return fmt.Sprintf("ABONENT_SRV_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (a *AbonSrvRow) Calc() {
+func (a *AbonSrvRow) Calc(cfg Config) {
 
-	a.RegionID = EnvRegionID
+	a.RegionID = cfg.RegionID
 	a.RecordAction = 1
 	a.ID = 1
 }

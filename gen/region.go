@@ -19,7 +19,7 @@ type RegionRow struct {
 
 type Region struct{}
 
-func (a *Region) RenderMysql(db *sqlx.DB) (r []string, err error) {
+func (a *Region) RenderMysql(db *sqlx.DB, cfg Config) (r []string, err error) {
 	var regions []RegionRow
 	err = db.Select(&regions, `select id, name from districts order by id`)
 	if err != nil {
@@ -28,24 +28,24 @@ func (a *Region) RenderMysql(db *sqlx.DB) (r []string, err error) {
 	var rr []RegionRow
 	rr = append(rr, RegionRow{
 		ID:          0,
-		BeginTime:   EnvInitDate,
+		BeginTime:   cfg.InitDate,
 		DESCRIPTION: "Не указан",
 	})
 	for i := range regions {
-		regions[i].BeginTime = EnvInitDate
+		regions[i].BeginTime = cfg.InitDate
 	}
 	rr = append(rr, regions...)
 	r = csv.MarshalCSV(rr, ";", "")
 	return r, nil
 }
 
-func (a *Region) Render(db *sqlx.DB) (r []string, err error) {
+func (a *Region) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 
 	r = csv.MarshalCSV([]RegionRow{
 		{
-			ID:          EnvRegionID,
-			BeginTime:   EnvInitDate,
-			DESCRIPTION: EnvRegionName,
+			ID:          cfg.RegionID,
+			BeginTime:   cfg.InitDate,
+			DESCRIPTION: cfg.RegionName,
 		},
 	}, ";", "")
 	return r, nil

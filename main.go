@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
-	"time"
 
+	"github.com/cristalhq/aconfig"
+	"github.com/cristalhq/aconfig/aconfigtoml"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/prgra/qgen/gen"
@@ -19,35 +18,33 @@ type Report struct {
 }
 
 func main() {
-	db, err := sqlx.Connect("mysql", os.Getenv("QGEN_MYSQL"))
+
+	var cfg gen.Config
+	loader := aconfig.LoaderFor(&cfg, aconfig.Config{
+		SkipFlags: true,
+		EnvPrefix: "QGEN",
+		Files:     []string{"/etc/qgen.toml", "qgen.toml"},
+		FileDecoders: map[string]aconfig.FileDecoder{
+			".toml": aconfigtoml.New(),
+		},
+	})
+
+	if err := loader.Load(); err != nil {
+		panic(err)
+	}
+	cfg.CalcInitDate()
+	db, err := sqlx.Connect("mysql", cfg.MySQL)
 	if err != nil {
 		log.Println("mysql", err)
 		os.Exit(1)
 	}
-	if os.Getenv("QGEN_NAMES") != "" {
-		_, err = db.Exec(fmt.Sprintf("SET NAMES %s", os.Getenv("QGEN_NAMES")))
+	if cfg.MyNames != "" {
+		_, err = db.Exec(fmt.Sprintf("SET NAMES %s", cfg.MyNames))
 		if err != nil {
 			log.Println(err)
 			os.Exit(2)
 		}
 	}
-	gen.EnvCompanyCode = "720000"
-	if os.Getenv("QGEN_URPREF") != "" {
-		gen.EnvCompanyCode = os.Getenv("QGEN_URPREF")
-	}
-	gen.EnvRegionID, _ = strconv.Atoi(os.Getenv("QGEN_REGION_ID"))
-	gen.EnvRegionName = os.Getenv("QGEN_REGION_NAME")
-	if gen.EnvRegionName == "" {
-		gen.EnvRegionName = "Основной"
-	}
-	gen.EnvOnlyOneDay = os.Getenv("QGEN_ONLY_ONE_DAY") == "1" ||
-		strings.ToLower(os.Getenv("QGEN_ONLY_ONE_DAY")) == "true"
-	gen.EnvInitDate, err = time.Parse("2006-01-02", os.Getenv("QGEN_INIT_DATE"))
-	if err != nil {
-		gen.EnvInitDate = time.Unix(0, 0)
-	}
-	gen.EnvInitDate = gen.EnvInitDate.UTC()
-	gen.EnvCountry = os.Getenv("QGEN_COUNTRY")
 
 	var reports = []Report{
 		{&gen.DocType{}, 1},
@@ -63,7 +60,7 @@ func main() {
 		{&gen.AbonUsers{}, 11},
 	}
 	for _, r := range reports {
-		err = gen.WriteToFile(r.G, db)
+		err = gen.WriteToFile(r.G, cfg, db)
 		if err != nil {
 			log.Println(err)
 			os.Exit(r.ErrCode)

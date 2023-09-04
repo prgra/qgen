@@ -19,14 +19,14 @@ type SupplementaryRow struct {
 
 type Supplementary struct{}
 
-func (a *Supplementary) Render(db *sqlx.DB) (r []string, err error) {
+func (a *Supplementary) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	supps := []SupplementaryRow{
 		{
 			ID:          1,
 			Mnemonic:    "INET",
-			BeginTime:   EnvInitDate,
+			BeginTime:   cfg.InitDate,
 			Description: "Доступ в Интернет по технологии FTTx",
-			RegionID:    EnvRegionID,
+			RegionID:    cfg.RegionID,
 		},
 	}
 

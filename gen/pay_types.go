@@ -18,8 +18,8 @@ type PayTypeRow struct {
 	RegionID  int       `csv:"REGION_ID"`
 }
 
-func (a *PayTypes) Render(db *sqlx.DB) (r []string, err error) {
-	_, tps, err := LoadPayMethodsMapFromFile("paymethods.map")
+func (a *PayTypes) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+	_, tps, err := LoadPayMethodsMapFromFile("paymethods.map", cfg)
 	if err != nil {
 		return nil, err
 	}
