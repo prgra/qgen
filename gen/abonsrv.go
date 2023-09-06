@@ -12,7 +12,7 @@ import (
 type AbonSrv struct{}
 
 type AbonSrvRow struct {
-	AbonentID    sql.NullInt16 `db:"" csv:"ABONENT_ID"`
+	AbonentID    sql.NullInt64 `db:"" csv:"ABONENT_ID"`
 	RegionID     int           `db:"" csv:"REGION_ID"`
 	ID           int           `db:"" csv:"ID"`
 	BeginTime    time.Time     `db:"attach" csv:"BEGIN_TIME"`
@@ -22,16 +22,18 @@ type AbonSrvRow struct {
 	RecordAction int           `db:"" csv:"RECORD_ACTION"`
 	InternalID1  string        `db:"uid" csv:"INTERNAL_ID1"`
 	InternalID2  string        `db:"" csv:"INTERNAL_ID2"`
+	Company      int           `db:"company_id" csv:"-"`
 }
 
-func (a *AbonIdent) AbonSrv(db *sqlx.DB, cfg Config) (r []string, err error) { //
+func (a *AbonSrv) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
 	var abons []AbonSrvRow //
 	dta := cfg.InitDate.Format("2006-01-02")
 	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
 	err = db.Select(&abons, `select u.uid, 
-aa1.datetime as attach
+aa1.datetime as attach,
+u.company_id
 from 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
@@ -53,7 +55,9 @@ func (a *AbonSrv) GetFileName() string {
 }
 
 func (a *AbonSrvRow) Calc(cfg Config) {
-
+	if a.Company > 0 {
+		a.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, a.Company)
+	}
 	a.RegionID = cfg.RegionID
 	a.RecordAction = 1
 	a.ID = 1

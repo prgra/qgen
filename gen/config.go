@@ -13,6 +13,7 @@ type Config struct {
 	InitDate    time.Time `env:"-"`
 	OnlyOneDay  bool      `env:"ONLY_ONE_DAY"`
 	CompanyCode string    `env:"URPREF" default:"720000"`
+	NasGroupID  int       `env:"NAS_GROUP_ID" default:"1"`
 }
 
 func (c *Config) CalcInitDate() {

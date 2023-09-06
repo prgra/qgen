@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -9,10 +10,10 @@ import (
 )
 
 type GateWayRow struct {
-	GateID        int       `csv:"GATE_ID"`
+	GateID        int       `db:"id" csv:"GATE_ID"`
 	BeginTime     time.Time `csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
 	EndTime       time.Time `csv:"END_TIME" time:"2006-01-02 15:04:05"`
-	Description   string    `csv:"DESCRIPTION"`
+	Description   string    `db:"name" csv:"DESCRIPTION"`
 	GateType      int       `csv:"GATE_TYPE"`
 	AddressTypeID int       `csv:"ADDRESS_TYPE_ID"`
 	AddressType   int       `csv:"ADDRESS_TYPE"`
@@ -25,24 +26,39 @@ type GateWayRow struct {
 	Building      string    `csv:"BUILDING"`
 	BuildSect     string    `csv:"BUILD_SECT"`
 	Apartment     string    `csv:"APARTMENT"`
-	UnstructInfo  string    `csv:"UNSTRUCT_INFO"`
+	UnstructInfo  string    `db:"addr" csv:"UNSTRUCT_INFO"`
 	RegionID      int       `csv:"REGION_ID"`
 }
 
 type GateWay struct{}
 
 func (a *GateWay) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
-	gt := []GateWayRow{
-		{
-			GateID:      1,
-			BeginTime:   cfg.InitDate,
-			Description: "NAS",
-			RegionID:    cfg.RegionID,
-		},
-	}
 
-	r = csv.MarshalCSV(gt, ";", "")
+	var gws []GateWayRow
+	err = db.Select(&gws, `select n.id, n.name, 
+	CONCAT(d.name, ' ', s.name, ' ', b.number, ' ', n.address_flat) as addr
+	from nas n
+	left join builds b on b.id = n.location_id
+	left join streets s on s.id = b.street_id
+	left join districts d on d.id = s.district_id
+	where n.gid = ? order by n.id`, cfg.NasGroupID)
+	if err != nil {
+		return nil, err
+	}
+	for i := range gws {
+		gws[i].Calc(cfg)
+	}
+	r = csv.MarshalCSV(gws, ";", "")
 	return r, nil
+}
+
+func (a *GateWayRow) Calc(cfg Config) {
+	a.AddressTypeID = 3
+	a.AddressType = 1
+	a.GateType = 8
+	a.RegionID = cfg.RegionID
+	a.BeginTime = cfg.InitDate
+	a.UnstructInfo = strings.TrimSpace(a.UnstructInfo)
 }
 
 func (a *GateWay) GetFileName() string {
