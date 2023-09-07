@@ -18,7 +18,7 @@ type AbonSrvRow struct {
 	BeginTime    time.Time     `db:"attach" csv:"BEGIN_TIME"`
 	EndTime      time.Time     `db:"" csv:"END_TIME"`
 	Parameter    string        `db:"" csv:"PARAMETER"`
-	SrvContract  string        `db:"" csv:"SRV_CONTRACT"`
+	SrvContract  string        `db:"login" csv:"SRV_CONTRACT"`
 	RecordAction int           `db:"" csv:"RECORD_ACTION"`
 	InternalID1  string        `db:"uid" csv:"INTERNAL_ID1"`
 	InternalID2  string        `db:"" csv:"INTERNAL_ID2"`
@@ -31,10 +31,12 @@ func (a *AbonSrv) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
 	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
-	err = db.Select(&abons, `select u.uid, 
+	err = db.Select(&abons, `SELECT
+u.id as login,
+u.uid, 
 aa1.datetime as attach,
 u.company_id
-from 
+FROM 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
