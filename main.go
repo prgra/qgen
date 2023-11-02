@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/cristalhq/aconfig"
 	"github.com/cristalhq/aconfig/aconfigtoml"
@@ -45,7 +46,14 @@ func main() {
 			os.Exit(2)
 		}
 	}
-
+	if cfg.OnlyOneDay {
+		dberr := db.Get(&cfg.InitDate, "SELECT date FROM qgenlog ORDER BY id DESC LIMIT 1")
+		if dberr != nil {
+			fmt.Println("get last date", dberr)
+		}
+		fmt.Println("init date", cfg.InitDate)
+	}
+	t := time.Now()
 	var reports = []Report{
 		{&gen.DocType{}, 1},
 		{&gen.Abons{}, 2},
@@ -67,5 +75,9 @@ func main() {
 			log.Println(err)
 			os.Exit(r.ErrCode)
 		}
+	}
+	_, err = db.Exec("INSERT INTO qgenlog (date, comment) values(?,?)", t, "OK")
+	if err != nil {
+		fmt.Println("can't insert into log", err)
 	}
 }
