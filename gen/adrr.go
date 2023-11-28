@@ -35,6 +35,8 @@ type AbonAddrRow struct {
 	InternalID2   string         `db:"-" csv:"INTERNAL_ID2"`
 	Descr         sql.NullString `db:"comments" csv:"-"`
 	Company       int            `db:"company_id" csv:"-"`
+	RegAddr       string         `db:"_regaddr" csv:"-"`
+	RegAddrSame   bool           `db:"_regsame" csv:"-"`
 }
 
 type AbonAddr struct{}
@@ -52,7 +54,9 @@ d.zip as zip,
 s.name as street,
 b.number as build,
 pi.address_flat as flat,
-u.company_id
+u.company_id,
+pi._regaddr,
+pi._regsame
 FROM 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
@@ -70,11 +74,28 @@ WHERE aa1.datetime >= ?`, dta)
 		return nil, err
 	}
 	var ainf addrInfo
+	var rabons []AbonAddrRow
 	for i := range abons {
-		json.Unmarshal([]byte(abons[i].Descr.String), &ainf)
+		_ = json.Unmarshal([]byte(abons[i].Descr.String), &ainf)
 		abons[i].Calc(ainf, cfg)
+		rabons = append(rabons, abons[i])
+		if abons[i].RegAddr != "" && !abons[i].RegAddrSame {
+			ca := abons[i]
+			ca.AddressTypeID = 0
+			ca.AddressType = 1
+			ca.Street = sql.NullString{}
+			ca.Building = sql.NullString{}
+
+			ca.UnstructInfo = abons[i].RegAddr
+			rabons = append(rabons, ca)
+		}
+		if abons[i].RegAddrSame {
+			ca := abons[i]
+			ca.AddressTypeID = 0
+			rabons = append(rabons, ca)
+		}
 	}
-	r = csv.MarshalCSV(abons, ";", "")
+	r = csv.MarshalCSV(rabons, ";", "")
 	return r, nil
 }
 
@@ -93,7 +114,7 @@ func (a *AbonAddrRow) Calc(ainf addrInfo, cfg Config) {
 		a.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, a.Company)
 	}
 	a.Country = cfg.Country
-	a.AddressTypeID = 0
+	a.AddressTypeID = 3
 	a.RegionID = cfg.RegionID
 	a.BeginTime = cfg.InitDate
 	a.Country = ainf.Country

@@ -38,12 +38,12 @@ type AbonRow struct {
 	IdentCardNumber      string         `db:"pasport_num" csv:"IDENT_CARD_NUMBER"`                          // IDENT_CARD_NUMBER
 	IdentCardDescription string         `db:"pasport_grant" csv:"IDENT_CARD_DESCRIPTION"`                   // IDENT_CARD_DESCRIPTION
 	IdentCardUnstruct    string         `db:"pasport" csv:"IDENT_CARD_UNSTRUCT"`                            // IDENT_CARD_UNSTRUCT
-	Bank                 string         `db:"-" csv:"BANK"`                                                 // BANK
-	BankAccount          string         `db:"-" csv:"BANK_ACCOUNT"`                                         // BANK_ACCOUNT
-	FullName             sql.NullString `db:"-" csv:"FULL_NAME"`                                            // FULL_NAME
-	INN                  string         `db:"-" csv:"INN"`                                                  // INN
-	Contact              string         `db:"-" csv:"CONTACT"`                                              // CONTACT
-	PhoneFax             string         `db:"phone" csv:"PHONE_FAX"`                                        // PHONE_FAX
+	Bank                 sql.NullString `db:"bank_name" csv:"BANK"`                                         // BANK
+	BankAccount          sql.NullString `db:"bank_account" csv:"BANK_ACCOUNT"`                              // BANK_ACCOUNT
+	FullName             sql.NullString `db:"c.name" csv:"FULL_NAME"`                                       // FULL_NAME
+	INN                  sql.NullString `db:"tax_number" csv:"INN"`                                         // INN
+	Contact              sql.NullString `db:"representative" csv:"CONTACT"`                                 // CONTACT
+	PhoneFax             sql.NullString `db:"phone" csv:"PHONE_FAX"`                                        // PHONE_FAX
 	Status               int            `db:"disdel" csv:"STATUS"`                                          // STATUS
 	Attach               sql.NullTime   `db:"attach" csv:"ATTACH" time:"2006-01-02 15:04:05"`               // ATTACH
 	Detach               sql.NullTime   `db:"detach" csv:"DETACH" time:"2006-01-02 15:04:05"`               // DETACH
@@ -70,7 +70,11 @@ concat(pasport_num,', ',pasport_date,', ',pasport_grant) as pasport,
 c.name as compname,
 u.disable+u.deleted as disdel,
 aa1.datetime as attach,
-aa2.datetime as detach
+aa2.datetime as detach,
+c.tax_number,
+c.bank_name,
+c.representative,
+bank_account
 from 
 users u 
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
