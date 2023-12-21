@@ -230,7 +230,6 @@ var datereplace = regexp.MustCompile(`[^\d-\.]`)
 func ParseDateFromString(s string) (time.Time, error) {
 	s = datereplace.ReplaceAllString(s, "")
 	s = strings.TrimSuffix(s, ".")
-	datereplace.ReplaceAllString(s, "O")
 	for _, fmt := range dateformats {
 		t, err := time.Parse(fmt, s)
 		if err == nil {
