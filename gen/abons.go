@@ -30,7 +30,7 @@ type AbonRow struct {
 	InitialName          string         `db:"-" csv:"INITIAL_NAME"`                                         // INITIAL_NAME
 	FIO                  string         `db:"fio" csv:"UNSTRUCT_NAME"`                                      // UNSTRUCT_NAME
 	BirthDate            time.Time      `db:"-" csv:"BIRTH_DATE" time:"2006-01-02"`                         // BIRTH_DATE
-	SBirthDate           string         `db:"_birth_date" csv:"-"`                                          // BIRTH_DATE
+	SBirthDate           string         `db:"_date_birth" csv:"-" time:"2006-01-02 15:04:05"`               // BIRTH_DATE
 	IdentCardTypeID      sql.NullInt64  `db:"-" csv:"IDENT_CARD_TYPE_ID"`                                   // IDENT_CARD_TYPE_ID
 	IdentCardType        sql.NullInt64  `db:"-" csv:"IDENT_CARD_TYPE"`                                      // IDENT_CARD_TYPE
 	IdentCardSerial      string         `db:"-" csv:"IDENT_CARD_SERIAL"`                                    // IDENT_CARD_SERIAL
@@ -74,7 +74,8 @@ aa2.datetime as detach,
 c.tax_number,
 c.bank_name,
 c.representative,
-bank_account
+bank_account,
+pi._date_birth
 from 
 users u 
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
@@ -179,6 +180,13 @@ func (r *AbonRow) Calc(cfg Config) {
 	if r.CDate.IsZero() {
 		r.CDate = cfg.InitDate
 	}
+	t, err := ParseDateFromString(r.SBirthDate)
+	if r.SBirthDate != "" && err != nil {
+		fmt.Println("parse date error", err, r.Login, r.SBirthDate)
+	}
+	if err == nil {
+		r.BirthDate = t
+	}
 	// if r.Company > 0 {
 	// 	r.InternalID1 = strconv.Itoa(r.Company)
 	// 	r.AbonID = 0
@@ -205,4 +213,41 @@ func IsUrLico(s string) bool {
 		return true
 	}
 	return false
+}
+
+var dateformats = []string{
+	"02.01.2006",
+	"02-01-2006",
+	"2006-01-02",
+	"2006.01.02",
+}
+
+var datere1 = regexp.MustCompile(`.+(\d{2})[-./]+(\d{2})[-./]+(\d{4}).+`)
+var datere2 = regexp.MustCompile(`.+(\d{4})[-./]+(\d{2})[-./]+(\d{2}).+`)
+var datereplace = regexp.MustCompile(`[^\d-\.]`)
+
+// ParseDateFromString парсит дату из строки
+func ParseDateFromString(s string) (time.Time, error) {
+	s = datereplace.ReplaceAllString(s, "")
+	s = strings.TrimSuffix(s, ".")
+	datereplace.ReplaceAllString(s, "O")
+	for _, fmt := range dateformats {
+		t, err := time.Parse(fmt, s)
+		if err == nil {
+			return t, nil
+		}
+	}
+	if datere1.MatchString(s) {
+		t, err := time.Parse("02.01.2006", datere1.ReplaceAllString(s, "$1-$2-$3"))
+		if err == nil {
+			return t, nil
+		}
+	}
+	if datere2.MatchString(s) {
+		t, err := time.Parse("2006-01-02", datere2.ReplaceAllString(s, "$1-$2-$3"))
+		if err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("wrong date format")
 }
