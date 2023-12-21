@@ -72,7 +72,7 @@ func main() {
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, cfg, db)
 		if err != nil {
-			log.Println(err)
+			log.Printf("report %s :%v\n", r.G.GetFileName(), err)
 			os.Exit(r.ErrCode)
 		}
 	}
