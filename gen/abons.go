@@ -89,7 +89,7 @@ LEFT JOIN streets s ON s.id=b.street_id
 LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 JOIN tarif_plans tp ON tp.id=dv.tp_id
-WHERE aa1.datetime >= ?`, dta)
+WHERE aa2.datetime >= ?`, dta)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

@@ -79,6 +79,8 @@ users u
 JOIN dv_main dv ON dv.uid=u.uid
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
 	where uid=u.uid order by id limit 1)
+LEFT JOIN admin_actions aa2 on aa2.id = (select id from admin_actions 
+	where uid=u.uid order by id desc limit 1)
 LEFT JOIN users_pi pi ON pi.uid=u.uid 
 LEFT JOIN builds b ON b.id=pi.location_id
 LEFT JOIN streets s ON s.id=b.street_id
@@ -86,7 +88,7 @@ LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 LEFT JOIN dhcphosts_hosts dh ON dh.uid=u.uid
 JOIN tarif_plans tp ON tp.id=dv.tp_id
-WHERE aa1.datetime >= ?`, dta)
+WHERE aa2.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
 	}

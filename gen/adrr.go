@@ -68,7 +68,7 @@ LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 JOIN tarif_plans tp ON tp.id=dv.tp_id
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
-	where uid=u.uid order by id limit 1)
+	where uid=u.uid order by id desc limit 1)
 WHERE aa1.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err

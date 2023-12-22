@@ -40,7 +40,7 @@ FROM
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
-	where uid=u.uid order by id limit 1)
+	where uid=u.uid order by id desc limit 1)
 WHERE aa1.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
