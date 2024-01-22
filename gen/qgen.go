@@ -39,8 +39,11 @@ func WriteToFile(g Generator, cfg config.Config, db *sqlx.DB) error {
 		// это лечит левую кодировку которую возвращает база mysql
 		s := string([]rune(r[i]))
 		if cfg.CSVChatset != "windows-1251" {
-			enc := charmap.Windows1251
-			s = enc.String(s)
+			enc := charmap.Windows1251.NewEncoder()
+			s, err = enc.String(s)
+			if err != nil {
+				return err
+			}
 		}
 		n, err2 := f.WriteString(s + "\n")
 		if err2 != nil {
