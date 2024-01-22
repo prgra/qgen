@@ -1,4 +1,4 @@
-package gen
+package yhnt
 
 import (
 	"database/sql"
@@ -94,7 +94,7 @@ WHERE aa2.datetime >= ?`, dta)
 		return nil, err
 	}
 	for i := range abons {
-		abons[i].Calc(cfg)
+		abons[i].Calc()
 	}
 	r = csv.MarshalCSV(abons, ";", "")
 	return r, nil
@@ -104,22 +104,8 @@ func (a *AbonIdent) GetFileName() string {
 	return fmt.Sprintf("ABONENT_IDENT_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (a *AbonIdentRow) Calc(cfg config.Config) {
-	if a.Company > 0 {
-		a.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, a.Company)
-	}
-	a.RegionID = cfg.RegionID
-	a.IdentType = 5
-	a.EquipmentType = 0
-	a.IPType = 0
-	a.MAC.String = MakeMac(a.MAC.String)
-	a.IPv4 = MakeIP(a.IPv4)
-	// a.Login = a.IPv4
-	if a.IPv4 != "" {
-		a.IPv4Mask = MakeIP(a.IPv4Mask)
-	} else {
-		a.IPv4Mask = ""
-	}
+func (a *AbonIdentRow) Calc() {
+
 }
 
 // MakeMac - преобразует в строку вида 0A0B0C0D0E0F

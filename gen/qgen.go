@@ -7,14 +7,16 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
+	"golang.org/x/text/encoding/charmap"
 )
 
 type Generator interface {
-	Render(*sqlx.DB, Config) ([]string, error)
+	Render(*sqlx.DB, config.Config) ([]string, error)
 	GetFileName() string
 }
 
-func WriteToFile(g Generator, cfg Config, db *sqlx.DB) error {
+func WriteToFile(g Generator, cfg config.Config, db *sqlx.DB) error {
 	p, err := os.Getwd()
 	if err != nil {
 		return err
@@ -36,6 +38,10 @@ func WriteToFile(g Generator, cfg Config, db *sqlx.DB) error {
 	for i := range r {
 		// это лечит левую кодировку которую возвращает база mysql
 		s := string([]rune(r[i]))
+		if cfg.CSVChatset != "windows-1251" {
+			enc := charmap.Windows1251
+			s = enc.String(s)
+		}
 		n, err2 := f.WriteString(s + "\n")
 		if err2 != nil {
 			return err2

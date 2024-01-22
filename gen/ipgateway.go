@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -19,7 +20,7 @@ type IPGateWayRow struct {
 
 type IPGateWay struct{}
 
-func (a *IPGateWay) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *IPGateWay) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	var gws []IPGateWayRow
 	err = db.Select(&gws, `select id,ip from nas where gid = ? order by id`, cfg.NasGroupID)
 	if err != nil {
@@ -45,7 +46,7 @@ func (a *IPGateWay) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	// return r, nil
 }
 
-func (a *IPGateWayRow) Calc(cfg Config) {
+func (a *IPGateWayRow) Calc(cfg config.Config) {
 	a.RegionID = cfg.RegionID
 	a.IPType = 0
 	a.IPv4 = MakeIP(a.IPv4)

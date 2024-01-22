@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -61,7 +62,7 @@ type PaymentRow struct {
 // Payments is a generator for PAYMENTS table
 type Payments struct{}
 
-func (a *Payments) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *Payments) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	var pays []PaymentRow
 	dta := cfg.InitDate.Format("2006-01-02")
 	if cfg.OnlyOneDay {
@@ -85,7 +86,7 @@ func (a *Payments) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	return r, nil
 }
 
-func (p *PaymentRow) Calc(pmap map[int]int, cfg Config) {
+func (p *PaymentRow) Calc(pmap map[int]int, cfg config.Config) {
 	p.RegionID = cfg.RegionID
 	p.Country = cfg.Country
 	p.PaymentType = pmap[p.PayTypeID]
@@ -102,7 +103,7 @@ func (p *PaymentRow) Calc(pmap map[int]int, cfg Config) {
 // 3:80:Credit Card
 // 4:86:Бонус
 // 5:86:Корректировка
-func LoadPayMethodsMapFromFile(filename string, cfg Config) (r map[int]int, pt []PayTypeRow, err error) {
+func LoadPayMethodsMapFromFile(filename string, cfg config.Config) (r map[int]int, pt []PayTypeRow, err error) {
 	f, err := os.Open(filepath.Clean(filename))
 	if err != nil {
 		return nil, nil, err

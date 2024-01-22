@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -18,7 +19,7 @@ type PayTypeRow struct {
 	RegionID  int       `csv:"REGION_ID"`
 }
 
-func (a *PayTypes) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *PayTypes) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	_, tps, err := LoadPayMethodsMapFromFile("paymethods.map", cfg)
 	if err != nil {
 		return nil, err

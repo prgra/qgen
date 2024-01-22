@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -19,7 +20,7 @@ type RegionRow struct {
 
 type Region struct{}
 
-func (a *Region) RenderMysql(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *Region) RenderMysql(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	var regions []RegionRow
 	err = db.Select(&regions, `select id, name from districts order by id`)
 	if err != nil {
@@ -39,7 +40,7 @@ func (a *Region) RenderMysql(db *sqlx.DB, cfg Config) (r []string, err error) {
 	return r, nil
 }
 
-func (a *Region) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *Region) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 
 	r = csv.MarshalCSV([]RegionRow{
 		{

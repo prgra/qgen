@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -21,7 +22,7 @@ type AbonUsersRow struct {
 	Company      int    `db:"company_id" csv:"-"`
 }
 
-func (a *AbonUsers) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
+func (a *AbonUsers) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
 	var abons []AbonUsersRow //
 	dta := cfg.InitDate.Format("2006-01-02")
 	if cfg.OnlyOneDay {
@@ -44,7 +45,7 @@ func (a *AbonUsers) GetFileName() string {
 	return fmt.Sprintf("ABONENT_USER_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (r *AbonUsersRow) Calc(cfg Config) {
+func (r *AbonUsersRow) Calc(cfg config.Config) {
 	r.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, r.Company)
 	r.RegionID = cfg.RegionID
 	r.RecordAction = 1

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -32,7 +33,7 @@ type GateWayRow struct {
 
 type GateWay struct{}
 
-func (a *GateWay) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *GateWay) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 
 	var gws []GateWayRow
 	err = db.Select(&gws, `select n.id, n.name, 
@@ -52,7 +53,7 @@ func (a *GateWay) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
 	return r, nil
 }
 
-func (a *GateWayRow) Calc(cfg Config) {
+func (a *GateWayRow) Calc(cfg config.Config) {
 	a.AddressTypeID = 3
 	a.AddressType = 1
 	a.GateType = 8

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -41,7 +42,7 @@ type AbonAddrRow struct {
 
 type AbonAddr struct{}
 
-func (a *AbonAddr) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
+func (a *AbonAddr) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
 	var abons []AbonAddrRow //
 	dta := cfg.InitDate.Format("2006-01-02")
 	if cfg.OnlyOneDay {
@@ -109,7 +110,7 @@ type addrInfo struct {
 	Zone    string `json:"zone"`
 }
 
-func (a *AbonAddrRow) Calc(ainf addrInfo, cfg Config) {
+func (a *AbonAddrRow) Calc(ainf addrInfo, cfg config.Config) {
 	if a.Company > 0 {
 		a.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, a.Company)
 	}

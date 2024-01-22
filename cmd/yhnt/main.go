@@ -10,7 +10,9 @@ import (
 	"github.com/cristalhq/aconfig/aconfigtoml"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/gen"
+	"github.com/prgra/qgen/yhnt"
 )
 
 type Report struct {
@@ -20,10 +22,10 @@ type Report struct {
 
 func main() {
 
-	var cfg gen.Config
+	var cfg config.Config
 	loader := aconfig.LoaderFor(&cfg, aconfig.Config{
 		SkipFlags: true,
-		EnvPrefix: "QGEN",
+		EnvPrefix: "YHNT",
 		Files:     []string{"/etc/qgen.toml", "qgen.toml"},
 		FileDecoders: map[string]aconfig.FileDecoder{
 			".toml": aconfigtoml.New(),
@@ -55,19 +57,7 @@ func main() {
 	}
 	t := time.Now()
 	var reports = []Report{
-		{&gen.DocType{}, 1},
-		{&gen.Abons{}, 2},
-		{&gen.AbonIdent{}, 3},
-		{&gen.AbonAddr{}, 4},
-		{&gen.Region{}, 5},
-		{&gen.PayTypes{}, 6},
-		{&gen.Supplementary{}, 7},
-		{&gen.IPPlan{}, 8},
-		{&gen.GateWay{}, 9},
-		{&gen.Payments{}, 10},
-		{&gen.AbonUsers{}, 11},
-		{&gen.AbonSrv{}, 12},
-		{&gen.IPGateWay{}, 13},
+		{&yhnt.AbonIdent{}, 1},
 	}
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, cfg, db)

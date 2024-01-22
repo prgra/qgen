@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -25,7 +26,7 @@ type AbonSrvRow struct {
 	Company      int           `db:"company_id" csv:"-"`
 }
 
-func (a *AbonSrv) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
+func (a *AbonSrv) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
 	var abons []AbonSrvRow //
 	dta := cfg.InitDate.Format("2006-01-02")
 	if cfg.OnlyOneDay {
@@ -56,7 +57,7 @@ func (a *AbonSrv) GetFileName() string {
 	return fmt.Sprintf("ABONENT_SRV_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (a *AbonSrvRow) Calc(cfg Config) {
+func (a *AbonSrvRow) Calc(cfg config.Config) {
 	if a.Company > 0 {
 		a.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, a.Company)
 	}

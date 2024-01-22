@@ -1,4 +1,4 @@
-package gen
+package config
 
 import "time"
 
@@ -14,6 +14,7 @@ type Config struct {
 	OnlyOneDay  bool      `env:"ONLY_ONE_DAY"`
 	CompanyCode string    `env:"URPREF" default:"720000"`
 	NasGroupID  int       `env:"NAS_GROUP_ID" default:"1"`
+	CSVChatset  string    `env:"CSV_CHARSET" default:""`
 }
 
 func (c *Config) CalcInitDate() {

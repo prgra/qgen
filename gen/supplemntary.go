@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -19,7 +20,7 @@ type SupplementaryRow struct {
 
 type Supplementary struct{}
 
-func (a *Supplementary) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *Supplementary) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	supps := []SupplementaryRow{
 		{
 			ID:          1,

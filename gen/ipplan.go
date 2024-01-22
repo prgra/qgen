@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -22,7 +23,7 @@ type IPPlanRow struct {
 
 type IPPlan struct{}
 
-func (a *IPPlan) Render(db *sqlx.DB, cfg Config) (r []string, err error) {
+func (a *IPPlan) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	var plan []IPPlanRow
 	err = db.Select(&plan, `select INET_NTOA(network) as network,
 		INET_NTOA(mask) as mask,
@@ -41,7 +42,7 @@ func (a *IPPlan) GetFileName() string {
 	return fmt.Sprintf("IP_PLAN_%s.txt", time.Now().Format("20060102_1504"))
 }
 
-func (a *IPPlanRow) Calc(cfg Config) {
+func (a *IPPlanRow) Calc(cfg config.Config) {
 	a.IPType = 0
 	a.RegionID = cfg.RegionID
 	a.BeginTime = cfg.InitDate

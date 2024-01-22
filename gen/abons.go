@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
 )
 
@@ -53,7 +54,7 @@ type AbonRow struct {
 	CompanyName          sql.NullString `db:"compname" csv:"-"`
 }
 
-func (a *Abons) Render(db *sqlx.DB, cfg Config) (r []string, err error) { //
+func (a *Abons) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
 	var abons []AbonRow //
 	dta := cfg.InitDate.Format("2006-01-02")
 	if cfg.OnlyOneDay {
@@ -130,7 +131,7 @@ func (r *AbonRow) UrFizCalc() {
 	}
 }
 
-func (r *AbonRow) Calc(cfg Config) {
+func (r *AbonRow) Calc(cfg config.Config) {
 	r.ActualFrom = r.Attach.Time
 	if r.AbonType == 43 {
 		if r.CompanyName.Valid {
