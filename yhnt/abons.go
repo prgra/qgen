@@ -1,9 +1,7 @@
 package yhnt
 
 import (
-	"database/sql"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -11,58 +9,101 @@ import (
 	"github.com/prgra/qgen/csv"
 )
 
-type AbonIdent struct{}
+type Abons struct{}
 
-type AbonIdentRow struct {
-	AbonID            string         `db:"-" csv:"ABONENT_ID"`
-	RegionID          int            `db:"-" csv:"REGION_ID"`
-	IdentType         int            `db:"-" csv:"IDENT_TYPE"`
-	Phone             string         `db:"-" csv:"PHONE"`
-	InternalNumber    string         `db:"-" csv:"INTERNAL_NUMBER"`
-	IMSI              string         `db:"-" csv:"IMSI"`
-	IMEI              string         `db:"-" csv:"IMEI"`
-	ICC               string         `db:"-" csv:"ICC"`
-	MIN               string         `db:"-" csv:"MIN"`
-	ESN               string         `db:"-" csv:"ESN"`
-	EquipmentType     int            `db:"-" csv:"EQUIPMENT_TYPE"`
-	MAC               sql.NullString `db:"mac" csv:"MAC"`
-	VPI               string         `db:"-" csv:"VPI"`
-	VCI               string         `db:"-" csv:"VCI"`
-	Login             string         `db:"-" csv:"LOGIN"`
-	EMail             string         `db:"email" csv:"E_MAIL"`
-	PIN               string         `db:"-" csv:"PIN"`
-	UserDomain        string         `db:"-" csv:"USER_DOMAIN"`
-	Reserved          string         `db:"-" csv:"RESERVED"`
-	OriginatorName    string         `db:"-" csv:"ORIGINATOR_NAME"`
-	IPType            int            `db:"-" csv:"IP_TYPE"`
-	IPv4              string         `db:"ip" csv:"IPV4"`
-	IPv6              string         `db:"-" csv:"IPV6"`
-	IPv4Mask          string         `db:"mask" csv:"IPV4_MASK"`
-	IPv6Mask          string         `db:"-" csv:"IPV6_MASK"`
-	BeginTime         time.Time      `db:"attach" csv:"BEGIN_TIME" time:"2006-01-02 15:04:05"`
-	EndTime           time.Time      `db:"-" csv:"END_TIME" time:"2006-01-02 15:04:05"`
-	LineObject        string         `db:"-" csv:"LINE_OBJECT"`
-	LineCross         string         `db:"-" csv:"LINE_CROSS"`
-	LineBlock         string         `db:"-" csv:"LINE_BLOCK"`
-	LinePair          string         `db:"-" csv:"LINE_PAIR"`
-	LineReserved      string         `db:"-" csv:"LINE_RESERVED"`
-	LocType           string         `db:"-" csv:"LOC_TYPE"`
-	LocLac            string         `db:"-" csv:"LOC_LAC"`
-	LocCell           string         `db:"-" csv:"LOC_CELL"`
-	LocTa             string         `db:"-" csv:"LOC_TA"`
-	LocCellWireless   string         `db:"-" csv:"LOC_CELL_WIRELESS"`
-	LocMac            string         `db:"-" csv:"LOC_MAC"`
-	LocLatitude       string         `db:"-" csv:"LOC_LATITUDE"`
-	LocLongitude      string         `db:"-" csv:"LOC_LONGITUDE"`
-	LocProjectionType string         `db:"-" csv:"LOC_PROJECTION_TYPE"`
-	RecordAction      string         `db:"-" csv:"RECORD_ACTION"`
-	InternalID1       string         `db:"uid" csv:"INTERNAL_ID1"`
-	InternalID2       string         `db:"-" csv:"INTERNAL_ID2"`
-	Company           int            `db:"company_id" csv:"-"`
+type AbonsRow struct {
+	DepID      int       `db:"-"`         // идентификатор филиала (число)
+	Login      string    `db:"login"`     // имя пользователя (логин для подключения к IP-сети) (строка, прочерк, если отсутствует)
+	IP         string    `db:"ip"`        // статический IP-адрес или ip-подсеть (при динамических адресах - не заполняется) (строка)
+	EMail      string    `db:"email"`     // адрес электронной почты (пустое поле «» если данных нет)
+	Phone      string    `db:"phone"`     // номер телефона (пустое поле «» если данных нет)
+	MacAddr    string    `db:"mac"`       // MAC-адрес абонента (при динамических адресах - не заполняется)
+	CreateDate time.Time `db:"crdate"`    // дата и время заключения договора (дата)
+	ContractID string    `db:"contract" ` // номер договора (строка)
+	Status     int       `db:"status"`    // текущий статус абонента (0 - подключен, 1 - отключен) (число, «1» указывается при расторжении договора или, когда пользователь перестает пользоваться логином или статическим ip-адресом)
+	EndDate    time.Time `db:"enddate"`   // дата и время окончания интервала времени, на котором актуальна информация (дата, обязательно заполняется при расторжении договора)
+	Type       int       `db:"-"`         // тип абонента (0 - физическое лицо, 1 - юридическое лицо) (число)
+	// информация об абоненте-физическом лице:
+	FIOType int `db:"-"` // тип данных по ФИО (0 - структурированные данные, 1 - неструктурированные) (число)
+	// структурированное ФИО:
+	SFIOName       string    `db:"-"`         // имя (строка)
+	SFIOPatronymic string    `db:"-"`         // отчество (строка)
+	SFIOSurname    string    `db:"-"`         // фамилия (строка)
+	USFIO          string    `db:"fio"`       // неструктурированное ФИО (строка)
+	BirthdayDate   time.Time `db:"_birthday"` // дата рождения (дата)
+	PassportType   int       `db:"-"`         // тип паспортных данных (0 - структурированные паспортные данные, 1 - неструктурированные) (число)
+	// структурированные паспортные данные:
+	SPassSeria  string `db:"-"`     // серия удостоверения личности (строка);
+	SPassNumber string `db:"-"`     //  номер удостоверения личности (строка);
+	SpassVidano string `db:"-"`     // кем и когда выдано (строка);
+	UnstuctPass string `db:"passp"` //  неструктурированные паспортные данные (строка);
+	DocType     int    `db:"-"`     // идентификатор типа документа, удостоверяющего личность (число);
+	AbonBank    string `db:"-"`     // банк абонента (используемый при расчете с оператором связи (строка), опциональное поле - заполняется в случае наличия таких сведений;
+	BankAcc     string `db:"-"`     // номер счета абонента в банке (используемый при расчетах с оператором связи) (строка), опциональное поле - заполняется в случае наличия таких сведений;
+	// информация об абоненте-юридическом лице:
+	UrName      string `db:"urname"` //  полное наименование (строка);
+	UrINN       string `db:"inn"`    // ИНН (строка);
+	UrContact   string `db:"-"`      //  контактное лицо (строка);
+	UrContPhone string `db:"-"`      // контактные телефоны, факс (строка);
+	UrBankName  string `db:"-"`      // банк абонента, используемый при расчете с оператором связи (строка);
+	UrBankSchet string `db:"-"`      // номер счета абонента в банке, используемый при расчетах с оператором связи (строка);
+	// адрес регистрации абонента (заполняется обязательно):
+	AddrType int `db:"-"` // тип данных по адресу регистрации абонента (0 - структурированные данные, 1 - неструктурированные) (число):
+	// структурированный адрес:
+	AddrZIP     string `db:"-"`    // почтовый индекс, zip-код (строка);
+	AddrCountry string `db:"-"`    // страна (строка);
+	AddrObl     string `db:"-"`    // область (строка);
+	AddrDist    string `db:"-"`    // район, муниципальный округ (строка);
+	AddrCity    string `db:"-"`    // город/поселок/деревня/аул (строка);
+	AddrStreet  string `db:"-"`    // улица (строка);
+	AddrHouse   string `db:"-"`    // номер дома, строения (строка);
+	AddrCorp    string `db:"-"`    // корпус (строка);
+	AddFlat     string `db:"-"`    // квартира, офис (строка);
+	UnstAddr    string `db:"addr"` // неструктурированный адрес (строка).
+	// адрес устройства (заполняется обязательно):
+	DevAddrType int `db:"-"` // тип данных по адресу устройства (0 - структурированные данные, 1 - неструктурированные) (число)
+	// структурированный адрес:
+	DevAddrZIP     string `db:"-"` // почтовый индекс, zip-код (строка);
+	DevAddrCountry string `db:"-"` // страна (строка);
+	DevAddrObl     string `db:"-"` // область (строка);
+	DevAddrDist    string `db:"-"` // район, муниципальный округ (строка);
+	DevAddrCity    string `db:"-"` // город/поселок/деревня/аул (строка);
+	DevAddrStreet  string `db:"-"` // улица (строка);
+	DevAddrHouse   string `db:"-"` // номер дома, строения (строка);
+	DevAddrCorp    string `db:"-"` // корпус (строка);
+	DevAddFlat     string `db:"-"` // квартира, офис (строка);
+	DevUnstAddr    string `db:"-"` // неструктурированный адрес (строка)
+	// почтовый адрес (дополнительный адрес для юридических лиц):
+	PostAddrType int `db:"-"` // тип данных по почтовому адресу (0 - структурированные данные, 1 - неструктурированные) (число, пустое поле, если отсутствует):
+	// структурированный адрес:
+	PostAddrZIP     string // почтовый индекс, zip-код (строка);
+	PostAddrCountry string // страна (строка);
+	PostAddrObl     string // область (строка);
+	PostAddrDist    string // район, муниципальный округ (строка);
+	PostAddrCity    string // город/поселок/деревня/аул (строка);
+	PostAddrStreet  string // улица (строка);
+	PostAddrHouse   string // номер дома, строения (строка);
+	PostAddrCorp    string // корпус (строка);
+	PostAddFlat     string // квартира, офис (строка);
+	PostUnstAddr    string // неструктурированный адрес (строка).
+	// адрес доставки счета (дополнительный адрес для юридических лиц):
+	DelivAddrType int `db:"-"` // тип данных по адресу доставки счета (0 - структурированные данные, 1 - неструктурированные) (число, пустое поле, если отсутствует):
+	// структурированный адрес:
+	DelivAddrZIP     string // почтовый индекс, zip-код (строка);
+	DelivAddrCountry string // страна (строка);
+	DelivAddrObl     string // область (строка);
+	DelivAddrDist    string // район, муниципальный округ (строка);
+	DelivAddrCity    string // город/поселок/деревня/аул (строка);
+	DelivAddrStreet  string // улица (строка);
+	DelivAddrHouse   string // номер дома, строения (строка);
+	DelivAddrCorp    string // корпус (строка);
+	DelivAddFlat     string // квартира, офис (строка);
+	DelivUnstAddr    string // неструктурированный адрес (строка).
+
 }
 
-func (a *AbonIdent) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
-	var abons []AbonIdentRow //
+func (a *Abons) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
+	var abons []AbonsRow //
 	dta := cfg.InitDate.Format("2006-01-02")
 	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
@@ -96,35 +137,15 @@ WHERE aa2.datetime >= ?`, dta)
 	for i := range abons {
 		abons[i].Calc()
 	}
-	r = csv.MarshalCSV(abons, ";", "")
+
+	r = csv.MarshalCSVNoHeader(abons, ";", `"`)
 	return r, nil
 }
 
-func (a *AbonIdent) GetFileName() string {
-	return fmt.Sprintf("ABONENT_IDENT_%s.txt", time.Now().Format("20060102_1504"))
+func (a *Abons) GetFileName() string {
+	return fmt.Sprintf("abonents_new.csv")
 }
 
-func (a *AbonIdentRow) Calc() {
+func (a *AbonsRow) Calc() {
 
-}
-
-// MakeMac - преобразует в строку вида 0A0B0C0D0E0F
-func MakeMac(mac string) string {
-	pm, err := net.ParseMAC(mac)
-	if err != nil {
-		return ""
-	}
-	return fmt.Sprintf("%0X", []byte(pm))
-}
-
-// MakeIP - преобразует в строку вида 0A0B0C0D
-func MakeIP(ip string) (hip string) {
-	if ip == "" || ip == "0.0.0.0" {
-		return ""
-	}
-	nip := net.ParseIP(ip)
-	if nip == nil {
-		return ""
-	}
-	return fmt.Sprintf("%0X", []byte(nip[12:]))
 }

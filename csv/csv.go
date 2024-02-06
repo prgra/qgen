@@ -36,11 +36,20 @@ func MarshalCSV(a interface{}, delim, sdelim string) []string {
 	return rs
 }
 
+func MarshalCSVNoHeader(a interface{}, delim, sdelim string) []string {
+	var rs []string
+	for i := 0; i < reflect.ValueOf(a).Len(); i++ {
+		r := reflect.ValueOf(a).Index(i).Interface()
+		rs = append(rs, makeRow(r, delim, sdelim))
+	}
+	return rs
+}
+
 // MakeRow :: make csv row from record
 func makeRow(r interface{}, delim, sdelim string) string {
 	// st := reflect.TypeOf(r)
 	var fields []string
-	re := strings.NewReplacer(";", " ", "\n", " ", "\r", "")
+	re := strings.NewReplacer(";", " ", "\n", " ", "\r", "", "\"", "'")
 	v := reflect.ValueOf(r)
 	st := reflect.TypeOf(r)
 	for i := 0; i < v.NumField(); i++ {

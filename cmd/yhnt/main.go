@@ -57,7 +57,7 @@ func main() {
 	}
 	t := time.Now()
 	var reports = []Report{
-		{&yhnt.AbonIdent{}, 1},
+		{&yhnt.Abons{}, 1},
 	}
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, cfg, db)
@@ -70,4 +70,5 @@ func main() {
 	if err != nil {
 		fmt.Println("can't insert into log", err)
 	}
+
 }

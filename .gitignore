@@ -3,3 +3,4 @@ qgen
 gen/ipplan.go
 .DS_Store
 .env
+cmd/yhnt/yhnt
