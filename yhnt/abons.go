@@ -1,28 +1,33 @@
 package yhnt
 
 import (
+	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
+	"github.com/prgra/qgen/gen"
 )
 
 type Abons struct{}
 
 type AbonsRow struct {
-	DepID      int       `db:"-"`         // идентификатор филиала (число)
-	Login      string    `db:"login"`     // имя пользователя (логин для подключения к IP-сети) (строка, прочерк, если отсутствует)
-	IP         string    `db:"ip"`        // статический IP-адрес или ip-подсеть (при динамических адресах - не заполняется) (строка)
-	EMail      string    `db:"email"`     // адрес электронной почты (пустое поле «» если данных нет)
-	Phone      string    `db:"phone"`     // номер телефона (пустое поле «» если данных нет)
-	MacAddr    string    `db:"mac"`       // MAC-адрес абонента (при динамических адресах - не заполняется)
-	CreateDate time.Time `db:"crdate"`    // дата и время заключения договора (дата)
-	ContractID string    `db:"contract" ` // номер договора (строка)
-	Status     int       `db:"status"`    // текущий статус абонента (0 - подключен, 1 - отключен) (число, «1» указывается при расторжении договора или, когда пользователь перестает пользоваться логином или статическим ip-адресом)
-	EndDate    time.Time `db:"enddate"`   // дата и время окончания интервала времени, на котором актуальна информация (дата, обязательно заполняется при расторжении договора)
-	Type       int       `db:"-"`         // тип абонента (0 - физическое лицо, 1 - юридическое лицо) (число)
+	DepID       int            `db:"-"`                     // идентификатор филиала (число)
+	Login       string         `db:"login"`                 // имя пользователя (логин для подключения к IP-сети) (строка, прочерк, если отсутствует)
+	IP          string         `db:"ip"`                    // статический IP-адрес или ip-подсеть (при динамических адресах - не заполняется) (строка)
+	EMail       sql.NullString `db:"email"`                 // адрес электронной почты (пустое поле «» если данных нет)
+	Phone       string         `db:"phone"`                 // номер телефона (пустое поле «» если данных нет)
+	MacAddr     sql.NullString `db:"mac"`                   // MAC-адрес абонента (при динамических адресах - не заполняется)
+	CreateDateU int            `db:"crdate" csv:"-"`        // unix для даты создания
+	CreateDate  time.Time      `time:"02.01.2006 15:04:05"` // дата и время заключения договора (дата)
+	ContractID  string         `db:"contract_id"`           // номер договора (строка)
+	Status      int            `db:"status"`                // текущий статус абонента (0 - подключен, 1 - отключен) (число, «1» указывается при расторжении договора или, когда пользователь перестает пользоваться логином или статическим ip-адресом)
+	EndDateU    sql.NullInt64  `db:"enddate" csv:"-"`       // unix для даты окончания
+	EndDate     time.Time      `time:"02.01.2006 15:04:05"` // дата и время окончания интервала времени, на котором актуальна информация (дата, обязательно заполняется при расторжении договора)
+	Type        int            `db:"-"`                     // тип абонента (0 - физическое лицо, 1 - юридическое лицо) (число)
 	// информация об абоненте-физическом лице:
 	FIOType int `db:"-"` // тип данных по ФИО (0 - структурированные данные, 1 - неструктурированные) (число)
 	// структурированное ФИО:
@@ -41,12 +46,13 @@ type AbonsRow struct {
 	AbonBank    string `db:"-"`     // банк абонента (используемый при расчете с оператором связи (строка), опциональное поле - заполняется в случае наличия таких сведений;
 	BankAcc     string `db:"-"`     // номер счета абонента в банке (используемый при расчетах с оператором связи) (строка), опциональное поле - заполняется в случае наличия таких сведений;
 	// информация об абоненте-юридическом лице:
-	UrName      string `db:"urname"` //  полное наименование (строка);
-	UrINN       string `db:"inn"`    // ИНН (строка);
-	UrContact   string `db:"-"`      //  контактное лицо (строка);
-	UrContPhone string `db:"-"`      // контактные телефоны, факс (строка);
-	UrBankName  string `db:"-"`      // банк абонента, используемый при расчете с оператором связи (строка);
-	UrBankSchet string `db:"-"`      // номер счета абонента в банке, используемый при расчетах с оператором связи (строка);
+	CompanyID   int    `db:"company_id" csv:"-"` // идентификатор компании не выгружается в csv
+	UrName      string `db:"urname"`             // полное наименование (строка);
+	UrINN       string `db:"tax_number"`         // ИНН (строка);
+	UrContact   string `db:"representative"`     //  контактное лицо (строка);
+	UrContPhone string `db:"-"`                  // контактные телефоны, факс (строка);
+	UrBankName  string `db:"bank_name"`          // банк абонента, используемый при расчете с оператором связи (строка);
+	UrBankSchet string `db:"bank_account"`       // номер счета абонента в банке, используемый при расчетах с оператором связи (строка);
 	// адрес регистрации абонента (заполняется обязательно):
 	AddrType int `db:"-"` // тип данных по адресу регистрации абонента (0 - структурированные данные, 1 - неструктурированные) (число):
 	// структурированный адрес:
@@ -108,14 +114,23 @@ func (a *Abons) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
-	err = db.Select(&abons, `select u.uid, 
--- pi.contract_date,
-pi.email,
+	err = db.Select(&abons, `select u.id as login,  
+	pi.email,
 u.company_id,
 INET_NTOA(dv.ip) as ip,
-INET_NTOA(dv.netmask) as mask,
 dh.mac,
-aa1.datetime as attach
+UNIX_TIMESTAMP(aa1.datetime) as crdate,
+UNIX_TIMESTAMP(aa2.datetime) as enddate,
+pi.fio,
+pi.email,
+pi.phone,
+pi.contract_id,
+u.deleted + u.disable as status,
+c.name as compname,
+c.tax_number,
+c.bank_name,
+c.representative,
+c.bank_account
 from 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
@@ -123,6 +138,7 @@ LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions
 	where uid=u.uid order by id limit 1)
 LEFT JOIN admin_actions aa2 on aa2.id = (select id from admin_actions 
 	where uid=u.uid order by id desc limit 1)
+
 LEFT JOIN users_pi pi ON pi.uid=u.uid 
 LEFT JOIN builds b ON b.id=pi.location_id
 LEFT JOIN streets s ON s.id=b.street_id
@@ -132,13 +148,14 @@ LEFT JOIN dhcphosts_hosts dh ON dh.uid=u.uid
 JOIN tarif_plans tp ON tp.id=dv.tp_id
 WHERE aa2.datetime >= ?`, dta)
 	if err != nil {
+		fmt.Println("err", err)
 		return nil, err
 	}
 	for i := range abons {
-		abons[i].Calc()
+		abons[i].Calc(cfg)
 	}
 
-	r = csv.MarshalCSVNoHeader(abons, ";", `"`)
+	r = csv.MarshalCSV(abons, ";", `"`)
 	return r, nil
 }
 
@@ -146,6 +163,21 @@ func (a *Abons) GetFileName() string {
 	return fmt.Sprintf("abonents_new.csv")
 }
 
-func (a *AbonsRow) Calc() {
-
+func (a *AbonsRow) Calc(cfg config.Config) {
+	a.DepID = cfg.RegionID
+	a.CreateDate = time.Unix(int64(a.CreateDateU), 0)
+	a.MacAddr.String = strings.ToLower(a.MacAddr.String)
+	a.EMail.String = strings.ToLower(a.EMail.String)
+	if a.Status != 0 {
+		a.Status = 1
+		a.EndDate = time.Unix(int64(a.EndDateU.Int64), 0)
+	}
+	if a.IP == "0.0.0.0" {
+		a.IP = "-"
+	}
+	if a.CompanyID > 0 || gen.IsUrLico(a.USFIO) {
+		a.Type = 1
+		a.UrName = a.USFIO
+		a.USFIO = ""
+	}
 }
