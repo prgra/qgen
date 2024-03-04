@@ -132,7 +132,7 @@ func (a *AbonAddrRow) Calc(ainf addrInfo, cfg config.Config) {
 	}
 }
 
-var LaterRegexp = regexp.MustCompile(`(\d+)[\ \/]?([а-яА-Я]$)`)
+var LaterRegexp = regexp.MustCompile(`(\d+)[ /-]?([а-яА-Я])$`)
 var CorpRegexp = regexp.MustCompile(`(\d+)(\D+)(\d+)`)
 
 func SplitHouseNumber(house string) (build, sect string) {
@@ -146,14 +146,15 @@ func SplitHouseNumber(house string) (build, sect string) {
 	// 		return house[:i], house[i+1:]
 	// 	}
 	// }
+
 	if LaterRegexp.MatchString(house) {
 		return LaterRegexp.FindStringSubmatch(house)[1],
 			strings.ToUpper(LaterRegexp.FindStringSubmatch(house)[2])
 	}
 	if CorpRegexp.MatchString(house) {
 		return CorpRegexp.FindStringSubmatch(house)[1],
-			CorpRegexp.FindStringSubmatch(house)[2] + " " +
-				strings.TrimSpace(CorpRegexp.FindStringSubmatch(house)[3])
+			// CorpRegexp.FindStringSubmatch(house)[2] + " " +
+			strings.ToUpper(strings.TrimSpace(CorpRegexp.FindStringSubmatch(house)[3]))
 	}
 
 	return house, ""

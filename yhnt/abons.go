@@ -46,26 +46,26 @@ type AbonsRow struct {
 	AbonBank    string `db:"-"`     // банк абонента (используемый при расчете с оператором связи (строка), опциональное поле - заполняется в случае наличия таких сведений;
 	BankAcc     string `db:"-"`     // номер счета абонента в банке (используемый при расчетах с оператором связи) (строка), опциональное поле - заполняется в случае наличия таких сведений;
 	// информация об абоненте-юридическом лице:
-	CompanyID   int    `db:"company_id" csv:"-"` // идентификатор компании не выгружается в csv
-	UrName      string `db:"urname"`             // полное наименование (строка);
-	UrINN       string `db:"tax_number"`         // ИНН (строка);
-	UrContact   string `db:"representative"`     //  контактное лицо (строка);
-	UrContPhone string `db:"-"`                  // контактные телефоны, факс (строка);
-	UrBankName  string `db:"bank_name"`          // банк абонента, используемый при расчете с оператором связи (строка);
-	UrBankSchet string `db:"bank_account"`       // номер счета абонента в банке, используемый при расчетах с оператором связи (строка);
+	CompanyID   int            `db:"company_id" csv:"-"` // идентификатор компании не выгружается в csv
+	UrName      sql.NullString `db:"compname"`           // полное наименование (строка);
+	UrINN       sql.NullString `db:"tax_number"`         // ИНН (строка);
+	UrContact   sql.NullString `db:"representative"`     //  контактное лицо (строка);
+	UrContPhone sql.NullString `db:"-"`                  // контактные телефоны, факс (строка);
+	UrBankName  sql.NullString `db:"bank_name"`          // банк абонента, используемый при расчете с оператором связи (строка);
+	UrBankSchet sql.NullString `db:"bank_account"`       // номер счета абонента в банке, используемый при расчетах с оператором связи (строка);
 	// адрес регистрации абонента (заполняется обязательно):
 	AddrType int `db:"-"` // тип данных по адресу регистрации абонента (0 - структурированные данные, 1 - неструктурированные) (число):
 	// структурированный адрес:
-	AddrZIP     string `db:"-"`    // почтовый индекс, zip-код (строка);
-	AddrCountry string `db:"-"`    // страна (строка);
-	AddrObl     string `db:"-"`    // область (строка);
-	AddrDist    string `db:"-"`    // район, муниципальный округ (строка);
-	AddrCity    string `db:"-"`    // город/поселок/деревня/аул (строка);
-	AddrStreet  string `db:"-"`    // улица (строка);
-	AddrHouse   string `db:"-"`    // номер дома, строения (строка);
-	AddrCorp    string `db:"-"`    // корпус (строка);
-	AddFlat     string `db:"-"`    // квартира, офис (строка);
-	UnstAddr    string `db:"addr"` // неструктурированный адрес (строка).
+	AddrZIP     sql.NullString `db:"zip"`     // почтовый индекс, zip-код (строка);
+	AddrCountry sql.NullString `db:"country"` // страна (строка);
+	AddrObl     string         `db:""`        // область (строка);
+	AddrDist    sql.NullString `db:"dist"`    // район, муниципальный округ (строка);
+	AddrCity    sql.NullString `db:"city"`    // город/поселок/деревня/аул (строка);
+	AddrStreet  sql.NullString `db:"street"`  // улица (строка);
+	AddrHouse   sql.NullString `db:"build"`   // номер дома, строения (строка);
+	AddrCorp    sql.NullString `db:"-"`       // корпус (строка);
+	AddFlat     sql.NullString `db:"flat"`    // квартира, офис (строка);
+	UnstAddr    sql.NullString `db:"addr"`    // неструктурированный адрес (строка).
 	// адрес устройства (заполняется обязательно):
 	DevAddrType int `db:"-"` // тип данных по адресу устройства (0 - структурированные данные, 1 - неструктурированные) (число)
 	// структурированный адрес:
@@ -130,7 +130,14 @@ c.name as compname,
 c.tax_number,
 c.bank_name,
 c.representative,
-c.bank_account
+c.bank_account,
+d.zip,
+d.country,
+d.name as dist,
+d.city,
+s.name as street,
+b.number as build,
+pi.address_flat as flat
 from 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
@@ -142,6 +149,7 @@ LEFT JOIN admin_actions aa2 on aa2.id = (select id from admin_actions
 LEFT JOIN users_pi pi ON pi.uid=u.uid 
 LEFT JOIN builds b ON b.id=pi.location_id
 LEFT JOIN streets s ON s.id=b.street_id
+LEFT JOIN districts d on d.id = s.district_id
 LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 LEFT JOIN dhcphosts_hosts dh ON dh.uid=u.uid
@@ -177,7 +185,19 @@ func (a *AbonsRow) Calc(cfg config.Config) {
 	}
 	if a.CompanyID > 0 || gen.IsUrLico(a.USFIO) {
 		a.Type = 1
-		a.UrName = a.USFIO
+		a.UrName = sql.NullString{
+			String: a.USFIO,
+			Valid:  true,
+		}
 		a.USFIO = ""
+	}
+	n, k := gen.SplitHouseNumber(a.AddrHouse.String)
+	a.AddrHouse = sql.NullString{
+		String: n,
+		Valid:  true,
+	}
+	a.AddrCorp = sql.NullString{
+		String: k,
+		Valid:  true,
 	}
 }
