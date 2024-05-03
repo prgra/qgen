@@ -3,6 +3,7 @@ package yhnt
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -38,13 +39,15 @@ type AbonsRow struct {
 	BirthdayDate   time.Time `db:"_birthday"` // дата рождения (дата)
 	PassportType   int       `db:"-"`         // тип паспортных данных (0 - структурированные паспортные данные, 1 - неструктурированные) (число)
 	// структурированные паспортные данные:
-	SPassSeria  string `db:"-"`     // серия удостоверения личности (строка);
-	SPassNumber string `db:"-"`     //  номер удостоверения личности (строка);
-	SpassVidano string `db:"-"`     // кем и когда выдано (строка);
-	UnstuctPass string `db:"passp"` //  неструктурированные паспортные данные (строка);
-	DocType     int    `db:"-"`     // идентификатор типа документа, удостоверяющего личность (число);
-	AbonBank    string `db:"-"`     // банк абонента (используемый при расчете с оператором связи (строка), опциональное поле - заполняется в случае наличия таких сведений;
-	BankAcc     string `db:"-"`     // номер счета абонента в банке (используемый при расчетах с оператором связи) (строка), опциональное поле - заполняется в случае наличия таких сведений;
+	PasSeria   string    `db:""`                     // серия удостоверения личности (строка);
+	PasNumber  string    `db:"pasport_num"`          //  номер удостоверения личности (строка);
+	SPasDate   string    `db:"pasport_date" csv:"-"` // для того чтобы распарсить дату ;
+	PasDate    time.Time `db:"-" csv:"-"`            // дата ;
+	PasVidano  string    `db:"pasport_grant"`        // кем и когда выдано (строка);
+	UnstuctPas string    `db:"pasport"`              //  неструктурированные паспортные данные (строка);
+	DocType    int       `db:"-"`                    // идентификатор типа документа, удостоверяющего личность (число);
+	AbonBank   string    `db:"-"`                    // банк абонента (используемый при расчете с оператором связи (строка), опциональное поле - заполняется в случае наличия таких сведений;
+	BankAcc    string    `db:"-"`                    // номер счета абонента в банке (используемый при расчетах с оператором связи) (строка), опциональное поле - заполняется в случае наличия таких сведений;
 	// информация об абоненте-юридическом лице:
 	CompanyID   int            `db:"company_id" csv:"-"` // идентификатор компании не выгружается в csv
 	UrName      sql.NullString `db:"compname"`           // полное наименование (строка);
@@ -108,6 +111,8 @@ type AbonsRow struct {
 
 }
 
+var passportRe = regexp.MustCompile(`\D+`)
+
 func (a *Abons) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
 	var abons []AbonsRow //
 	dta := cfg.InitDate.Format("2006-01-02")
@@ -137,7 +142,9 @@ d.name as dist,
 d.city,
 s.name as street,
 b.number as build,
-pi.address_flat as flat
+pi.address_flat as flat,
+pasport_num, pasport_date, pasport_grant,
+concat(pasport_num,', ',pasport_date,', ',pasport_grant) as pasport
 from 
 users u 
 JOIN dv_main dv ON dv.uid=u.uid
@@ -200,4 +207,47 @@ func (a *AbonsRow) Calc(cfg config.Config) {
 		String: k,
 		Valid:  true,
 	}
+	a.PasDate, _ = gen.ParseDateFromString(a.SPasDate)
+	pn := string(passportRe.ReplaceAll([]byte(a.PasNumber), []byte("")))
+	if len(pn) == 10 && !a.PasDate.IsZero() {
+		a.PasSeria = pn[:4]
+		a.PasNumber = pn[4:]
+		a.PasVidano = fmt.Sprintf("%s %s", a.PasVidano, a.PasDate.Format("02.01.2006"))
+		a.UnstuctPas = ""
+	} else {
+		a.PasSeria = ""
+		a.PasNumber = ""
+		a.PasVidano = fmt.Sprintf("%s %s %s %s", a.PasSeria, a.PasNumber, a.PasVidano, a.PasDate.Format("02.01.2006"))
+	}
+
+	// a.DevAddFlat = a.AddFlat.String
+	// a.DevAddrCity = a.AddrCity.String
+	// a.DevAddrCountry = a.AddrCountry.String
+	// a.DevAddrDist = a.AddrDist.String
+	// a.DevAddrHouse = a.AddrHouse.String
+	// a.DevAddrObl = a.AddrObl
+	// a.DevAddrStreet = a.AddrStreet.String
+	// a.DevAddrZIP = a.AddrZIP.String
+	// a.DevUnstAddr = a.UnstAddr.String
+	// a.DevAddrType = a.AddrType
+	// a.PostAddrCity = a.AddrCity.String
+	// a.PostAddrCountry = a.AddrCountry.String
+	// a.PostAddrDist = a.AddrDist.String
+	// a.PostAddrHouse = a.AddrHouse.String
+	// a.PostAddrObl = a.AddrObl
+	// a.PostAddrStreet = a.AddrStreet.String
+	// a.PostAddrZIP = a.AddrZIP.String
+	// a.PostUnstAddr = a.UnstAddr.String
+	// a.PostAddrType = a.AddrType
+	// a.DelivAddrCity = a.AddrCity.String
+	// a.DelivAddrCountry = a.AddrCountry.String
+	// a.DelivAddrDist = a.AddrDist.String
+	// a.DelivAddrHouse = a.AddrHouse.String
+	// a.DelivAddrObl = a.AddrObl
+	// a.DelivAddrStreet = a.AddrStreet.String
+	// a.DelivAddrZIP = a.AddrZIP.String
+	// a.DelivUnstAddr = a.UnstAddr.String
+	// a.DelivAddrType = a.AddrType
+	// a.DelivAddrCorp = a.AddrCorp.String
+	// a.DelivAddFlat = a.AddFlat.String
 }
