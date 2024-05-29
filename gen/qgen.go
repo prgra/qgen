@@ -42,7 +42,7 @@ func WriteToFile(g Generator, cfg config.Config, db *sqlx.DB) error {
 			enc := charmap.Windows1251.NewEncoder()
 			s, err = enc.String(s)
 			if err != nil {
-				return err
+				fmt.Println("encode", err, r[i])
 			}
 		}
 		n, err2 := f.WriteString(s + "\n")

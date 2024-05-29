@@ -170,7 +170,7 @@ WHERE aa2.datetime >= ?`, dta)
 		abons[i].Calc(cfg)
 	}
 
-	r = csv.MarshalCSV(abons, ";", `"`)
+	r = csv.MarshalCSVNoHeader(abons, ";", `"`)
 	return r, nil
 }
 

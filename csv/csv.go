@@ -31,7 +31,7 @@ func MarshalCSV(a interface{}, delim, sdelim string) []string {
 		if i == 0 {
 			rs = append(rs, string(makeHeader(r, delim, sdelim)))
 		}
-		rs = append(rs, makeRow(r, delim, sdelim))
+		rs = append(rs, makeRow(r, delim, sdelim, ""))
 	}
 	return rs
 }
@@ -40,13 +40,13 @@ func MarshalCSVNoHeader(a interface{}, delim, sdelim string) []string {
 	var rs []string
 	for i := 0; i < reflect.ValueOf(a).Len(); i++ {
 		r := reflect.ValueOf(a).Index(i).Interface()
-		rs = append(rs, makeRow(r, delim, sdelim))
+		rs = append(rs, makeRow(r, delim, sdelim, sdelim))
 	}
 	return rs
 }
 
 // MakeRow :: make csv row from record
-func makeRow(r interface{}, delim, sdelim string) string {
+func makeRow(r interface{}, delim, sdelim, idelim string) string {
 	// st := reflect.TypeOf(r)
 	var fields []string
 	re := strings.NewReplacer(";", " ", "\n", " ", "\r", "", "\"", "'")
@@ -61,43 +61,41 @@ func makeRow(r interface{}, delim, sdelim string) string {
 		}
 		if n != "-" {
 			switch v := f.(type) {
-			case int:
-				fields = append(fields, fmt.Sprint(v))
+			case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+				fields = append(fields, fmt.Sprintf("%s%d%s", idelim, v, idelim))
 			case string:
 				fields = append(fields, sdelim+re.Replace(v)+sdelim)
 			case sql.NullString:
 				fields = append(fields, sdelim+re.Replace(v.String)+sdelim)
-			case float32:
-				fields = append(fields, strings.Replace(fmt.Sprintf("%.2f", v), ".", ",", 1))
-			case float64:
-				fields = append(fields, strings.Replace(fmt.Sprintf("%.2f", v), ".", ",", 1))
+			case float32, float64:
+				fields = append(fields, idelim+strings.Replace(fmt.Sprintf("%.2f", v), ".", ",", 1)+idelim)
 			case sql.NullInt32:
 				if !v.Valid {
-					fields = append(fields, "")
+					fields = append(fields, idelim+idelim)
 					continue
 				}
-				fields = append(fields, fmt.Sprint(v.Int32))
+				fields = append(fields, fmt.Sprintf("%s%d%s", idelim, v.Int32, idelim))
 			case sql.NullInt64:
 				if !v.Valid {
-					fields = append(fields, "")
+					fields = append(fields, idelim+idelim)
 					continue
 				}
 				fields = append(fields, fmt.Sprint(v.Int64))
 			case sql.NullFloat64:
 				if !v.Valid {
-					fields = append(fields, "")
+					fields = append(fields, idelim+idelim)
 					continue
 				}
-				fields = append(fields, strings.Replace(fmt.Sprintf("%.2f", v.Float64), ".", ",", 1))
+				fields = append(fields, idelim+strings.Replace(fmt.Sprintf("%.2f", v.Float64), ".", ",", 1)+idelim)
 			case time.Time:
 				if v.IsZero() {
-					fields = append(fields, "")
+					fields = append(fields, idelim+idelim)
 					continue
 				}
 				fields = append(fields, sdelim+v.Format(formt)+sdelim)
 			case sql.NullTime:
 				if !v.Valid || v.Time.IsZero() {
-					fields = append(fields, "")
+					fields = append(fields, idelim+idelim)
 					continue
 				}
 				fields = append(fields, sdelim+v.Time.Format(formt)+sdelim)
@@ -108,7 +106,7 @@ func makeRow(r interface{}, delim, sdelim string) string {
 					fields = append(fields, sdelim+"нет"+sdelim)
 				}
 			default:
-				fields = append(fields, fmt.Sprintf("%v", v))
+				fields = append(fields, fmt.Sprintf("%s%v%s", sdelim, v, sdelim))
 			}
 		}
 	}

@@ -36,6 +36,7 @@ func main() {
 		panic(err)
 	}
 	cfg.CalcInitDate()
+
 	db, err := sqlx.Connect("mysql", cfg.MySQL)
 	if err != nil {
 		log.Println("mysql", err)
@@ -58,6 +59,9 @@ func main() {
 	t := time.Now()
 	var reports = []Report{
 		{&yhnt.Abons{}, 1},
+		{&yhnt.GateWay{}, 2},
+		{&yhnt.DocType{}, 3},
+		{&yhnt.Payments{}, 4},
 	}
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, cfg, db)
