@@ -16,98 +16,99 @@ import (
 type Abons struct{}
 
 type AbonsRow struct {
-	DepID       int            `db:"-"`                     // идентификатор филиала (число)
-	Login       string         `db:"login"`                 // имя пользователя (логин для подключения к IP-сети) (строка, прочерк, если отсутствует)
-	IP          string         `db:"ip"`                    // статический IP-адрес или ip-подсеть (при динамических адресах - не заполняется) (строка)
-	EMail       sql.NullString `db:"email"`                 // адрес электронной почты (пустое поле «» если данных нет)
-	Phone       string         `db:"phone"`                 // номер телефона (пустое поле «» если данных нет)
-	MacAddr     sql.NullString `db:"mac"`                   // MAC-адрес абонента (при динамических адресах - не заполняется)
-	CreateDateU int            `db:"crdate" csv:"-"`        // unix для даты создания
-	CreateDate  time.Time      `time:"02.01.2006 15:04:05"` // дата и время заключения договора (дата)
-	ContractID  string         `db:"contract_id"`           // номер договора (строка)
-	Status      int            `db:"status"`                // текущий статус абонента (0 - подключен, 1 - отключен) (число, «1» указывается при расторжении договора или, когда пользователь перестает пользоваться логином или статическим ip-адресом)
-	EndDateU    sql.NullInt64  `db:"enddate" csv:"-"`       // unix для даты окончания
-	EndDate     time.Time      `time:"02.01.2006 15:04:05"` // дата и время окончания интервала времени, на котором актуальна информация (дата, обязательно заполняется при расторжении договора)
-	Type        int            `db:"-"`                     // тип абонента (0 - физическое лицо, 1 - юридическое лицо) (число)
+	DepID       int            `db:"-"`                     //  1 идентификатор филиала (число)
+	Login       string         `db:"login"`                 //  2 имя пользователя (логин для подключения к IP-сети) (строка, прочерк, если отсутствует)
+	IP          string         `db:"ip"`                    //  3 статический IP-адрес или ip-подсеть (при динамических адресах - не заполняется) (строка)
+	EMail       sql.NullString `db:"email"`                 //  4 адрес электронной почты (пустое поле «» если данных нет)
+	Phone       string         `db:"phone"`                 //  5 номер телефона (пустое поле «» если данных нет)
+	MacAddr     sql.NullString `db:"mac"`                   //  6 MAC-адрес абонента (при динамических адресах - не заполняется)
+	CreateDateU int            `db:"crdate" csv:"-"`        // -- unix для даты создания
+	CreateDate  time.Time      `time:"02.01.2006 15:04:05"` //  7 дата и время заключения договора (дата)
+	ContractID  string         `db:"contract_id"`           //  8 номер договора (строка)
+	Status      int            `db:"status"`                //  9 текущий статус абонента (0 - подключен, 1 - отключен) (число, «1» указывается при расторжении договора или, когда пользователь перестает пользоваться логином или статическим ip-адресом)
+	EndDateU    sql.NullInt64  `db:"enddate" csv:"-"`       // -- unix для даты окончания
+	ActualDate  time.Time      `time:"02.01.2006 15:04:05"` // 10 дата и время начала интервала времени, на котором актуальна информация (дата);
+	EndDate     time.Time      `time:"02.01.2006 15:04:05"` // 11 дата и время окончания интервала времени, на котором актуальна информация (дата, обязательно заполняется при расторжении договора)
+	Type        int            `db:"-"`                     // 12 тип абонента (0 - физическое лицо, 1 - юридическое лицо) (число)
 	// информация об абоненте-физическом лице:
-	FIOType int `db:"-"` // тип данных по ФИО (0 - структурированные данные, 1 - неструктурированные) (число)
+	FIOType int `db:"-"` // 13 тип данных по ФИО (0 - структурированные данные, 1 - неструктурированные) (число)
 	// структурированное ФИО:
-	SFIOName       string    `db:"-"`         // имя (строка)
-	SFIOPatronymic string    `db:"-"`         // отчество (строка)
-	SFIOSurname    string    `db:"-"`         // фамилия (строка)
-	USFIO          string    `db:"fio"`       // неструктурированное ФИО (строка)
-	BirthdayDate   time.Time `db:"_birthday"` // дата рождения (дата)
-	PassportType   int       `db:"-"`         // тип паспортных данных (0 - структурированные паспортные данные, 1 - неструктурированные) (число)
+	SFIOName       string    `db:"-"`         // 14 имя (строка)
+	SFIOPatronymic string    `db:"-"`         // 15 отчество (строка)
+	SFIOSurname    string    `db:"-"`         // 16 фамилия (строка)
+	USFIO          string    `db:"fio"`       // 17 неструктурированное ФИО (строка)
+	BirthdayDate   time.Time `db:"_birthday"` // 18 дата рождения (дата)
+	PassportType   int       `db:"-"`         // 19 тип паспортных данных (0 - структурированные паспортные данные, 1 - неструктурированные) (число)
 	// структурированные паспортные данные:
-	PasSeria   string    `db:""`                     // серия удостоверения личности (строка);
-	PasNumber  string    `db:"pasport_num"`          //  номер удостоверения личности (строка);
-	SPasDate   string    `db:"pasport_date" csv:"-"` // для того чтобы распарсить дату ;
-	PasDate    time.Time `db:"-" csv:"-"`            // дата ;
-	PasVidano  string    `db:"pasport_grant"`        // кем и когда выдано (строка);
-	UnstuctPas string    `db:"pasport"`              //  неструктурированные паспортные данные (строка);
-	DocType    int       `db:"-"`                    // идентификатор типа документа, удостоверяющего личность (число);
-	AbonBank   string    `db:"-"`                    // банк абонента (используемый при расчете с оператором связи (строка), опциональное поле - заполняется в случае наличия таких сведений;
-	BankAcc    string    `db:"-"`                    // номер счета абонента в банке (используемый при расчетах с оператором связи) (строка), опциональное поле - заполняется в случае наличия таких сведений;
+	PasSeria   string    `db:""`                     // 19 серия удостоверения личности (строка);
+	PasNumber  string    `db:"pasport_num"`          // 21 номер удостоверения личности (строка);
+	SPasDate   string    `db:"pasport_date" csv:"-"` // -- для того чтобы распарсить дату ;
+	PasDate    time.Time `db:"-" csv:"-"`            // -- дата ;
+	PasVidano  string    `db:"pasport_grant"`        // 22 кем и когда выдано (строка);
+	UnstuctPas string    `db:"pasport"`              // 23 неструктурированные паспортные данные (строка);
+	DocType    int       `db:"-"`                    // 24 идентификатор типа документа, удостоверяющего личность (число);
+	AbonBank   string    `db:"-"`                    // 25 банк абонента (используемый при расчете с оператором связи (строка), опциональное поле - заполняется в случае наличия таких сведений;
+	BankAcc    string    `db:"-"`                    // 26 номер счета абонента в банке (используемый при расчетах с оператором связи) (строка), опциональное поле - заполняется в случае наличия таких сведений;
 	// информация об абоненте-юридическом лице:
-	CompanyID   int            `db:"company_id" csv:"-"` // идентификатор компании не выгружается в csv
-	UrName      sql.NullString `db:"compname"`           // полное наименование (строка);
-	UrINN       sql.NullString `db:"tax_number"`         // ИНН (строка);
-	UrContact   sql.NullString `db:"representative"`     //  контактное лицо (строка);
-	UrContPhone sql.NullString `db:"-"`                  // контактные телефоны, факс (строка);
-	UrBankName  sql.NullString `db:"bank_name"`          // банк абонента, используемый при расчете с оператором связи (строка);
-	UrBankSchet sql.NullString `db:"bank_account"`       // номер счета абонента в банке, используемый при расчетах с оператором связи (строка);
+	CompanyID   int            `db:"company_id" csv:"-"` // -- идентификатор компании не выгружается в csv
+	UrName      sql.NullString `db:"compname"`           // 27 полное наименование (строка);
+	UrINN       sql.NullString `db:"tax_number"`         // 28 ИНН (строка);
+	UrContact   sql.NullString `db:"representative"`     // 29 контактное лицо (строка);
+	UrContPhone sql.NullString `db:"-"`                  // 30 контактные телефоны, факс (строка);
+	UrBankName  sql.NullString `db:"bank_name"`          // 31 банк абонента, используемый при расчете с оператором связи (строка);
+	UrBankSchet sql.NullString `db:"bank_account"`       // 32 номер счета абонента в банке, используемый при расчетах с оператором связи (строка);
 	// адрес регистрации абонента (заполняется обязательно):
-	AddrType int `db:"-"` // тип данных по адресу регистрации абонента (0 - структурированные данные, 1 - неструктурированные) (число):
+	AddrType int `db:"-"` // 33 тип данных по адресу регистрации абонента (0 - структурированные данные, 1 - неструктурированные) (число):
 	// структурированный адрес:
-	AddrZIP     sql.NullString `db:"zip"`     // почтовый индекс, zip-код (строка);
-	AddrCountry sql.NullString `db:"country"` // страна (строка);
-	AddrObl     string         `db:""`        // область (строка);
-	AddrDist    sql.NullString `db:"dist"`    // район, муниципальный округ (строка);
-	AddrCity    sql.NullString `db:"city"`    // город/поселок/деревня/аул (строка);
-	AddrStreet  sql.NullString `db:"street"`  // улица (строка);
-	AddrHouse   sql.NullString `db:"build"`   // номер дома, строения (строка);
-	AddrCorp    sql.NullString `db:"-"`       // корпус (строка);
-	AddFlat     sql.NullString `db:"flat"`    // квартира, офис (строка);
-	UnstAddr    sql.NullString `db:"addr"`    // неструктурированный адрес (строка).
+	AddrZIP     sql.NullString `db:"zip"`     // 34 почтовый индекс, zip-код (строка);
+	AddrCountry sql.NullString `db:"country"` // 25 страна (строка);
+	AddrObl     string         `db:""`        // 36 область (строка);
+	AddrDist    sql.NullString `db:"dist"`    // 37 район, муниципальный округ (строка);
+	AddrCity    sql.NullString `db:"city"`    // 38 город/поселок/деревня/аул (строка);
+	AddrStreet  sql.NullString `db:"street"`  // 39 улица (строка);
+	AddrHouse   sql.NullString `db:"build"`   // 40 номер дома, строения (строка);
+	AddrCorp    sql.NullString `db:"-"`       // 41 корпус (строка);
+	AddFlat     sql.NullString `db:"flat"`    // 42 квартира, офис (строка);
+	UnstAddr    sql.NullString `db:"addr"`    // 43 неструктурированный адрес (строка).
 	// адрес устройства (заполняется обязательно):
-	DevAddrType int `db:"-"` // тип данных по адресу устройства (0 - структурированные данные, 1 - неструктурированные) (число)
+	DevAddrType int `db:"-"` // 44 тип данных по адресу устройства (0 - структурированные данные, 1 - неструктурированные) (число)
 	// структурированный адрес:
-	DevAddrZIP     string `db:"-"` // почтовый индекс, zip-код (строка);
-	DevAddrCountry string `db:"-"` // страна (строка);
-	DevAddrObl     string `db:"-"` // область (строка);
-	DevAddrDist    string `db:"-"` // район, муниципальный округ (строка);
-	DevAddrCity    string `db:"-"` // город/поселок/деревня/аул (строка);
-	DevAddrStreet  string `db:"-"` // улица (строка);
-	DevAddrHouse   string `db:"-"` // номер дома, строения (строка);
-	DevAddrCorp    string `db:"-"` // корпус (строка);
-	DevAddFlat     string `db:"-"` // квартира, офис (строка);
-	DevUnstAddr    string `db:"-"` // неструктурированный адрес (строка)
+	DevAddrZIP     string `db:"-"` // 45 почтовый индекс, zip-код (строка);
+	DevAddrCountry string `db:"-"` // 46 страна (строка);
+	DevAddrObl     string `db:"-"` // 47 область (строка);
+	DevAddrDist    string `db:"-"` // 48 район, муниципальный округ (строка);
+	DevAddrCity    string `db:"-"` // 49 город/поселок/деревня/аул (строка);
+	DevAddrStreet  string `db:"-"` // 50 улица (строка);
+	DevAddrHouse   string `db:"-"` // 51 номер дома, строения (строка);
+	DevAddrCorp    string `db:"-"` // 52 корпус (строка);
+	DevAddFlat     string `db:"-"` // 53 квартира, офис (строка);
+	DevUnstAddr    string `db:"-"` // 54 неструктурированный адрес (строка)
 	// почтовый адрес (дополнительный адрес для юридических лиц):
-	PostAddrType int `db:"-"` // тип данных по почтовому адресу (0 - структурированные данные, 1 - неструктурированные) (число, пустое поле, если отсутствует):
+	PostAddrType int `db:"-"` // 55 тип данных по почтовому адресу (0 - структурированные данные, 1 - неструктурированные) (число, пустое поле, если отсутствует):
 	// структурированный адрес:
-	PostAddrZIP     string // почтовый индекс, zip-код (строка);
-	PostAddrCountry string // страна (строка);
-	PostAddrObl     string // область (строка);
-	PostAddrDist    string // район, муниципальный округ (строка);
-	PostAddrCity    string // город/поселок/деревня/аул (строка);
-	PostAddrStreet  string // улица (строка);
-	PostAddrHouse   string // номер дома, строения (строка);
-	PostAddrCorp    string // корпус (строка);
-	PostAddFlat     string // квартира, офис (строка);
-	PostUnstAddr    string // неструктурированный адрес (строка).
+	PostAddrZIP     string // 56 почтовый индекс, zip-код (строка);
+	PostAddrCountry string // 57 страна (строка);
+	PostAddrObl     string // 58 область (строка);
+	PostAddrDist    string // 59 район, муниципальный округ (строка);
+	PostAddrCity    string // 60 город/поселок/деревня/аул (строка);
+	PostAddrStreet  string // 61 улица (строка);
+	PostAddrHouse   string // 62 номер дома, строения (строка);
+	PostAddrCorp    string // 63 корпус (строка);
+	PostAddFlat     string // 64 квартира, офис (строка);
+	PostUnstAddr    string // 65 неструктурированный адрес (строка).
 	// адрес доставки счета (дополнительный адрес для юридических лиц):
-	DelivAddrType int `db:"-"` // тип данных по адресу доставки счета (0 - структурированные данные, 1 - неструктурированные) (число, пустое поле, если отсутствует):
+	DelivAddrType int `db:"-"` // 66 тип данных по адресу доставки счета (0 - структурированные данные, 1 - неструктурированные) (число, пустое поле, если отсутствует):
 	// структурированный адрес:
-	DelivAddrZIP     string // почтовый индекс, zip-код (строка);
-	DelivAddrCountry string // страна (строка);
-	DelivAddrObl     string // область (строка);
-	DelivAddrDist    string // район, муниципальный округ (строка);
-	DelivAddrCity    string // город/поселок/деревня/аул (строка);
-	DelivAddrStreet  string // улица (строка);
-	DelivAddrHouse   string // номер дома, строения (строка);
-	DelivAddrCorp    string // корпус (строка);
-	DelivAddFlat     string // квартира, офис (строка);
-	DelivUnstAddr    string // неструктурированный адрес (строка).
+	DelivAddrZIP     string // 67 почтовый индекс, zip-код (строка);
+	DelivAddrCountry string // 68 страна (строка);
+	DelivAddrObl     string // 69 область (строка);
+	DelivAddrDist    string // 70 район, муниципальный округ (строка);
+	DelivAddrCity    string // 71 город/поселок/деревня/аул (строка);
+	DelivAddrStreet  string // 72 улица (строка);
+	DelivAddrHouse   string // 73 номер дома, строения (строка);
+	DelivAddrCorp    string // 74 корпус (строка);
+	DelivAddFlat     string // 75 квартира, офис (строка);
+	DelivUnstAddr    string // 76 неструктурированный адрес (строка).
 
 }
 
@@ -175,12 +176,15 @@ WHERE aa2.datetime >= ?`, dta)
 }
 
 func (a *Abons) GetFileName() string {
-	return fmt.Sprintf("abonents_new.csv")
+	return fmt.Sprintf("abonents.csv")
 }
 
 func (a *AbonsRow) Calc(cfg config.Config) {
 	a.DepID = cfg.RegionID
 	a.CreateDate = time.Unix(int64(a.CreateDateU), 0)
+	a.ActualDate = a.CreateDate
+	a.FIOType = 1
+	a.PassportType = 1
 	a.MacAddr.String = strings.ToLower(a.MacAddr.String)
 	a.EMail.String = strings.ToLower(a.EMail.String)
 	if a.Status != 0 {
