@@ -55,3 +55,7 @@ func (a *Region) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) 
 func (a *Region) GetFileName() string {
 	return fmt.Sprintf("REGIONS_%s.txt", time.Now().Format("20060102_1504"))
 }
+
+func (a *Region) GetRemoteDir() string {
+	return ""
+}

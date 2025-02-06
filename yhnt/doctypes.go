@@ -42,3 +42,7 @@ func (a *DocType) Render(db *sqlx.DB, cfg config.Config) (r []string, err error)
 func (a *DocType) GetFileName() string {
 	return "doc_types.csv"
 }
+
+func (a *DocType) GetRemoteDir() string {
+	return ""
+}

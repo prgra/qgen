@@ -14,6 +14,7 @@ import (
 type Generator interface {
 	Render(*sqlx.DB, config.Config) ([]string, error)
 	GetFileName() string
+	GetRemoteDir() string
 }
 
 func WriteToFile(g Generator, cfg config.Config, db *sqlx.DB) error {

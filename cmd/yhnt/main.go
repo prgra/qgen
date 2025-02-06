@@ -62,6 +62,8 @@ func main() {
 		{&yhnt.GateWay{}, 2},
 		{&yhnt.DocType{}, 3},
 		{&yhnt.Payments{}, 4},
+		{&yhnt.PaymentsType{}, 5},
+		{&yhnt.IPPlan{}, 6},
 	}
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, cfg, db)

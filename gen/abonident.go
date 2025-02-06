@@ -142,3 +142,7 @@ func MakeIP(ip string) (hip string) {
 	}
 	return fmt.Sprintf("%0X", []byte(nip[12:]))
 }
+
+func (a *AbonIdent) GetRemoteDir() string {
+	return ""
+}

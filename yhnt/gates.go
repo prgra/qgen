@@ -63,3 +63,7 @@ func (gw *GateWay) Render(db *sqlx.DB, cfg config.Config) (r []string, err error
 func (gw *GateWay) GetFileName() string {
 	return "gates.csv"
 }
+
+func (a *GateWay) GetRemoteDir() string {
+	return ""
+}

@@ -38,3 +38,7 @@ func (a *Supplementary) Render(db *sqlx.DB, cfg config.Config) (r []string, err 
 func (a *Supplementary) GetFileName() string {
 	return fmt.Sprintf("SUPPLEMENTARY_SERVICE_%s.txt", time.Now().Format("20060102_1504"))
 }
+
+func (a *Supplementary) GetRemoteDir() string {
+	return ""
+}

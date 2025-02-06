@@ -53,3 +53,7 @@ func (p *PaymentRow) Calc(cfg config.Config) {
 func (a *Payments) GetFileName() string {
 	return "payments.csv"
 }
+
+func (a *Payments) GetRemoteDir() string {
+	return ""
+}

@@ -45,6 +45,10 @@ func (a *AbonUsers) GetFileName() string {
 	return fmt.Sprintf("ABONENT_USER_%s.txt", time.Now().Format("20060102_1504"))
 }
 
+func (a *AbonUsers) GetRemoteDir() string {
+	return ""
+}
+
 func (r *AbonUsersRow) Calc(cfg config.Config) {
 	r.InternalID1 = fmt.Sprintf("%s%d", cfg.CompanyCode, r.Company)
 	r.RegionID = cfg.RegionID

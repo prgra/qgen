@@ -251,3 +251,7 @@ func ParseDateFromString(s string) (time.Time, error) {
 	}
 	return time.Time{}, fmt.Errorf("wrong date format")
 }
+
+func (a *Abons) GetRemoteDir() string {
+	return ""
+}

@@ -65,3 +65,7 @@ func (a *AbonSrvRow) Calc(cfg config.Config) {
 	a.RecordAction = 1
 	a.ID = 1
 }
+
+func (a *AbonSrv) GetRemoteDir() string {
+	return ""
+}

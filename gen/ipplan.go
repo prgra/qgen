@@ -41,6 +41,9 @@ func (a *IPPlan) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) 
 func (a *IPPlan) GetFileName() string {
 	return fmt.Sprintf("IP_PLAN_%s.txt", time.Now().Format("20060102_1504"))
 }
+func (a *IPPlan) GetRemoteDir() string {
+	return ""
+}
 
 func (a *IPPlanRow) Calc(cfg config.Config) {
 	a.IPType = 0

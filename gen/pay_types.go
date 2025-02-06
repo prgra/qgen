@@ -31,3 +31,7 @@ func (a *PayTypes) Render(db *sqlx.DB, cfg config.Config) (r []string, err error
 func (a *PayTypes) GetFileName() string {
 	return fmt.Sprintf("PAY_TYPE_%s.txt", time.Now().Format("20060102_1504"))
 }
+
+func (a *PayTypes) GetRemoteDir() string {
+	return ""
+}

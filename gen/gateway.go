@@ -65,3 +65,7 @@ func (a *GateWayRow) Calc(cfg config.Config) {
 func (a *GateWay) GetFileName() string {
 	return fmt.Sprintf("GATEWAY_%s.txt", time.Now().Format("20060102_1504"))
 }
+
+func (a *GateWay) GetRemoteDir() string {
+	return ""
+}

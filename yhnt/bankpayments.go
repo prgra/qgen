@@ -51,3 +51,7 @@ func (p *BankPaymentRow) Calc(cfg config.Config) {
 func (a *BankPayments) GetFileName() string {
 	return fmt.Sprintf("", time.Now().Format("20060102_1504"))
 }
+
+func (a *BankPayments) GetRemoteDir() string {
+	return "payments/balance-fillup/"
+}

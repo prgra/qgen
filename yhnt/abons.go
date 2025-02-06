@@ -255,3 +255,7 @@ func (a *AbonsRow) Calc(cfg config.Config) {
 	// a.DelivAddrCorp = a.AddrCorp.String
 	// a.DelivAddFlat = a.AddFlat.String
 }
+
+func (a *Abons) GetRemoteDir() string {
+	return "abonents/abonents/"
+}

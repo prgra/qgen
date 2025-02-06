@@ -159,3 +159,7 @@ func SplitHouseNumber(house string) (build, sect string) {
 
 	return house, ""
 }
+
+func (a *AbonAddr) GetRemoteDir() string {
+	return ""
+}

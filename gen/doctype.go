@@ -43,3 +43,7 @@ func (a *DocType) Render(db *sqlx.DB, cfg config.Config) (r []string, err error)
 func (a *DocType) GetFileName() string {
 	return fmt.Sprintf("DOC_TYPE_%s.txt", time.Now().Format("20060102_1504"))
 }
+
+func (a *DocType) GetRemoteDir() string {
+	return ""
+}

@@ -55,3 +55,7 @@ func (a *IPGateWayRow) Calc(cfg config.Config) {
 func (a *IPGateWay) GetFileName() string {
 	return fmt.Sprintf("IP_GATEWAY_%s.txt", time.Now().Format("20060102_1504"))
 }
+
+func (a *IPGateWay) GetRemoteDir() string {
+	return ""
+}

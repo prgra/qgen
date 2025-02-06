@@ -126,7 +126,7 @@ func LoadPayMethodsMapFromFile(filename string, cfg config.Config) (r map[int]in
 		r[i1] = i2
 		var p PayTypeRow
 		p.ID = i1
-		p.Descr = fmt.Sprintf(a[2])
+		p.Descr = fmt.Sprint(a[2])
 		p.BeginTime = cfg.InitDate
 		p.RegionID = cfg.RegionID
 		pt = append(pt, p)
@@ -136,4 +136,8 @@ func LoadPayMethodsMapFromFile(filename string, cfg config.Config) (r map[int]in
 
 func (a *Payments) GetFileName() string {
 	return fmt.Sprintf("PAYMENT_%s.txt", time.Now().Format("20060102_1504"))
+}
+
+func (a *Payments) GetRemoteDir() string {
+	return ""
 }
