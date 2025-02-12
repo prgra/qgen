@@ -65,5 +65,5 @@ func (gw *GateWay) GetFileName() string {
 }
 
 func (a *GateWay) GetRemoteDir() string {
-	return ""
+	return "dictionaries/gates"
 }

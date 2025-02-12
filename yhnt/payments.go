@@ -55,5 +55,5 @@ func (a *Payments) GetFileName() string {
 }
 
 func (a *Payments) GetRemoteDir() string {
-	return ""
+	return "payments/balance-fillup"
 }

@@ -31,7 +31,7 @@ func main() {
 			".toml": aconfigtoml.New(),
 		},
 	})
-
+	log.SetOutput(os.Stdout)
 	if err := loader.Load(); err != nil {
 		panic(err)
 	}
@@ -66,9 +66,9 @@ func main() {
 		{&yhnt.IPPlan{}, 6},
 	}
 	for _, r := range reports {
-		err = gen.WriteToFile(r.G, cfg, db)
+		err = gen.UploadToFTP(r.G, cfg, db)
 		if err != nil {
-			log.Printf("report %s :%v\n", r.G.GetFileName(), err)
+			log.Printf("report %s :%v\n", r.G.GetRemoteDir()+r.G.GetFileName(), err)
 			os.Exit(r.ErrCode)
 		}
 	}

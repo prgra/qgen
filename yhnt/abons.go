@@ -257,5 +257,5 @@ func (a *AbonsRow) Calc(cfg config.Config) {
 }
 
 func (a *Abons) GetRemoteDir() string {
-	return "abonents/abonents/"
+	return "abonents/abonents"
 }

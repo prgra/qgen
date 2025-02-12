@@ -53,5 +53,5 @@ func (a *IPPlan) GetFileName() string {
 }
 
 func (a *IPPlan) GetRemoteDir() string {
-	return ""
+	return "dictionaries/ip-numbering-plan"
 }

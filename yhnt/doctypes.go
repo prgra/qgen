@@ -44,5 +44,5 @@ func (a *DocType) GetFileName() string {
 }
 
 func (a *DocType) GetRemoteDir() string {
-	return ""
+	return "dictionaries/doc-types"
 }

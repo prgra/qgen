@@ -55,5 +55,5 @@ func (a *PaymentsType) GetFileName() string {
 }
 
 func (a *PaymentsType) GetRemoteDir() string {
-	return ""
+	return "dictionaries/pay-types"
 }
