@@ -51,7 +51,7 @@ func UploadToFTP(g Generator, cfg config.Config, db *sqlx.DB) error {
 				fmt.Println("encode", err, r[i])
 			}
 		}
-		if writer == nil {
+		if writer != nil {
 			n, err2 := writer.Write([]byte(s + "\n"))
 			if err2 != nil {
 				return err2
@@ -64,5 +64,6 @@ func UploadToFTP(g Generator, cfg config.Config, db *sqlx.DB) error {
 
 	writer.Close()
 	wg.Wait()
+	fmt.Printf("done %d records\n", len(r))
 	return nil
 }

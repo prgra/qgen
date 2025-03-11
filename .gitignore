@@ -5,3 +5,4 @@ gen/ipplan.go
 .env
 cmd/yhnt/yhnt
 cmd/yhnt/tmp/*
+qgen.toml
