@@ -30,7 +30,7 @@ func (a *BankPayments) Render(db *sqlx.DB, cfg config.Config) (r []string, err e
 	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
-	err = db.Select(&pays, `SELECT p.date, p.sum, INET_NTOA(dv.ip) as ip, p.method, p.uid, p.bill_id, pi.phone 
+	err = db.Select(&pays, `SELECT p.date, p.sum, INET_NTOA(dv.ip) as ip, p.method, p.uid, p.bill_id, pi.phone
 		FROM payments p
 		LEFT JOIN users_pi pi on pi.uid = p.uid
 		LEFT JOIN dv_main dv on dv.uid = p.uid
@@ -50,7 +50,7 @@ func (p *BankPaymentRow) Calc(cfg config.Config) {
 }
 
 func (a *BankPayments) GetFileName() string {
-	return fmt.Sprintf("", time.Now().Format("20060102_1504"))
+	return fmt.Sprintf("bank_payments_%s.csv", time.Now().Format("20060102_1504"))
 }
 
 func (a *BankPayments) GetRemoteDir() string {

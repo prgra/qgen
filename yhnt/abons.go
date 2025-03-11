@@ -120,7 +120,7 @@ func (a *Abons) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) {
 	if cfg.OnlyOneDay {
 		dta = time.Now().Format("2006-01-02")
 	}
-	err = db.Select(&abons, `select u.id as login,  
+	err = db.Select(&abons, `select u.id as login,
 	pi.email,
 u.company_id,
 INET_NTOA(dv.ip) as ip,
@@ -146,15 +146,15 @@ b.number as build,
 pi.address_flat as flat,
 pasport_num, pasport_date, pasport_grant,
 concat(pasport_num,', ',pasport_date,', ',pasport_grant) as pasport
-from 
-users u 
+from
+users u
 JOIN dv_main dv ON dv.uid=u.uid
-LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 
+LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions
 	where uid=u.uid order by id limit 1)
-LEFT JOIN admin_actions aa2 on aa2.id = (select id from admin_actions 
+LEFT JOIN admin_actions aa2 on aa2.id = (select id from admin_actions
 	where uid=u.uid order by id desc limit 1)
 
-LEFT JOIN users_pi pi ON pi.uid=u.uid 
+LEFT JOIN users_pi pi ON pi.uid=u.uid
 LEFT JOIN builds b ON b.id=pi.location_id
 LEFT JOIN streets s ON s.id=b.street_id
 LEFT JOIN districts d on d.id = s.district_id
@@ -176,7 +176,7 @@ WHERE aa2.datetime >= ?`, dta)
 }
 
 func (a *Abons) GetFileName() string {
-	return fmt.Sprintf("abonents.csv")
+	return fmt.Sprintf("abonents_%s.csv", time.Now().Format("20060102_1504"))
 }
 
 func (a *AbonsRow) Calc(cfg config.Config) {

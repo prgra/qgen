@@ -1,6 +1,7 @@
 package yhnt
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -51,7 +52,7 @@ func (p *PaymentRow) Calc(cfg config.Config) {
 }
 
 func (a *Payments) GetFileName() string {
-	return "payments.csv"
+	return fmt.Sprintf("payments_%s.csv", time.Now().Format("20060102_1504"))
 }
 
 func (a *Payments) GetRemoteDir() string {
