@@ -31,7 +31,7 @@ type AbonRow struct {
 	InitialName          string         `db:"-" csv:"INITIAL_NAME"`                                         // INITIAL_NAME
 	FIO                  string         `db:"fio" csv:"UNSTRUCT_NAME"`                                      // UNSTRUCT_NAME
 	BirthDate            time.Time      `db:"-" csv:"BIRTH_DATE" time:"2006-01-02"`                         // BIRTH_DATE
-	SBirthDate           string         `db:"_date_birth" csv:"-" time:"2006-01-02 15:04:05"`               // BIRTH_DATE
+	SBirthDate           string         `db:"_birth_date" csv:"-" time:"2006-01-02 15:04:05"`               // BIRTH_DATE
 	IdentCardTypeID      sql.NullInt64  `db:"-" csv:"IDENT_CARD_TYPE_ID"`                                   // IDENT_CARD_TYPE_ID
 	IdentCardType        sql.NullInt64  `db:"-" csv:"IDENT_CARD_TYPE"`                                      // IDENT_CARD_TYPE
 	IdentCardSerial      string         `db:"-" csv:"IDENT_CARD_SERIAL"`                                    // IDENT_CARD_SERIAL
@@ -76,7 +76,7 @@ c.tax_number,
 c.bank_name,
 c.representative,
 bank_account,
-pi._date_birth
+pi._birth_date
 from 
 users u 
 LEFT JOIN admin_actions aa1 on aa1.id = (select id from admin_actions 

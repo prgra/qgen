@@ -17,7 +17,7 @@ type AbonIdentRow struct {
 	AbonID            string         `db:"-" csv:"ABONENT_ID"`
 	RegionID          int            `db:"-" csv:"REGION_ID"`
 	IdentType         int            `db:"-" csv:"IDENT_TYPE"`
-	Phone             string         `db:"-" csv:"PHONE"`
+	Phone             string         `db:"phone" csv:"PHONE"`
 	InternalNumber    string         `db:"-" csv:"INTERNAL_NUMBER"`
 	IMSI              string         `db:"-" csv:"IMSI"`
 	IMEI              string         `db:"-" csv:"IMEI"`
@@ -74,6 +74,7 @@ u.company_id,
 INET_NTOA(dv.ip) as ip,
 INET_NTOA(dv.netmask) as mask,
 dh.mac,
+pi.phone,
 aa1.datetime as attach
 from 
 users u 
