@@ -1,8 +1,9 @@
 qgen
 /tmp
-gen/ipplan.go
 .DS_Store
 .env
 cmd/yhnt/yhnt
 cmd/yhnt/tmp/*
+cmd/vase/tmp/*
+cmd/vase/vase
 qgen.toml
