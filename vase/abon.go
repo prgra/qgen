@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"regexp"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -47,13 +48,14 @@ type AbonIdentRow struct {
 	// Серия документа, удостоверяющего личность.
 	DocSeries string `db:"-" csv:"doc_series"`
 	// Номер документа, удостоверяющего личность.
-	DocNumber string `db:"-" csv:"doc_number"`
+	DocNumber         string       `db:"doc_number" csv:"doc_number"`
+	PassportIssueDate sql.NullTime `db:"passport_issue_date" csv:"-"`
 	// Дата выдачи документа.
 	DocIssueDate time.Time `db:"-" csv:"doc_issue_date" time:"02.01.2006"`
 	// Кем выдан документ.
-	DocIssuedBy string `db:"-" csv:"doc_issued_by"`
+	DocIssuedBy string `db:"doc_issued_by" csv:"doc_issued_by"`
 	// Неструктурированные паспортные данные.
-	PassportUnstruct string `db:"-" csv:"passport_unstruct"`
+	PassportUnstruct string `db:"passport_unstruct" csv:"passport_unstruct"`
 	// Тип документа (паспорт РФ/СССР и т.п.).
 	DocType string `db:"-" csv:"doc_type"`
 	// Банк абонента (для расчетов с оператором).
@@ -229,7 +231,11 @@ aa2.datetime as contract_end_date,
 aa1.datetime as actual_from,
 aa2.datetime as actual_to,
 dh.mac,
-pi.phone
+pi.phone,
+pi.pasport_num as doc_number,
+pi.pasport_date as passport_issue_date,
+pi.pasport_grant as doc_issued_by,
+COALESCE(pi.pasport, CONCAT_WS(', ', pi.pasport_num, pi.pasport_date, pi.pasport_grant)) as passport_unstruct
 from
 users u
 JOIN dv_main dv ON dv.uid=u.uid
@@ -259,6 +265,8 @@ func (a *AbonIdent) GetFileName() string {
 	return fmt.Sprintf("ABONENT_IDENT_%s.txt", time.Now().Format("20060102_1504"))
 }
 
+var passportNumberRe = regexp.MustCompile(`\D+`)
+
 func (a *AbonIdentRow) Calc(cfg config.Config) {
 	_ = cfg
 	if a.AbonType == 0 {
@@ -266,6 +274,22 @@ func (a *AbonIdentRow) Calc(cfg config.Config) {
 	}
 	if a.Status != 0 {
 		a.Status = 1
+	}
+	if a.PassportIssueDate.Valid {
+		a.DocIssueDate = a.PassportIssueDate.Time
+	}
+	passportNumber := string(passportNumberRe.ReplaceAll([]byte(a.DocNumber), nil))
+	if len(passportNumber) == 10 && !a.DocIssueDate.IsZero() {
+		a.PassportDataType = 0
+		a.DocSeries = passportNumber[:4]
+		a.DocNumber = passportNumber[4:]
+		a.PassportUnstruct = ""
+	} else if a.DocNumber != "" || a.DocIssuedBy != "" || !a.DocIssueDate.IsZero() || a.PassportUnstruct != "" {
+		a.PassportDataType = 1
+		a.DocSeries = ""
+		a.DocNumber = ""
+		a.DocIssueDate = time.Time{}
+		a.DocIssuedBy = ""
 	}
 	a.WifiMAC.String = MakeMac(a.WifiMAC.String)
 }
