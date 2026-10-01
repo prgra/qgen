@@ -266,6 +266,7 @@ func (a *AbonIdent) GetFileName() string {
 }
 
 var passportNumberRe = regexp.MustCompile(`\D+`)
+var phoneInputRe = regexp.MustCompile(`^\+?[0-9\s().-]+$`)
 
 func (a *AbonIdentRow) Calc(cfg config.Config) {
 	_ = cfg
@@ -275,6 +276,7 @@ func (a *AbonIdentRow) Calc(cfg config.Config) {
 	if a.Status != 0 {
 		a.Status = 1
 	}
+	a.ContactPhones = normalizePhone(a.ContactPhones)
 	if a.PassportIssueDate.Valid {
 		a.DocIssueDate = a.PassportIssueDate.Time
 	}
@@ -292,6 +294,20 @@ func (a *AbonIdentRow) Calc(cfg config.Config) {
 		a.DocIssuedBy = ""
 	}
 	a.WifiMAC.String = MakeMac(a.WifiMAC.String)
+}
+
+func normalizePhone(phone string) string {
+	if !phoneInputRe.MatchString(phone) {
+		return ""
+	}
+	digits := string(passportNumberRe.ReplaceAll([]byte(phone), nil))
+	if len(digits) == 11 && (digits[0] == '7' || digits[0] == '8') {
+		digits = digits[1:]
+	}
+	if len(digits) != 10 {
+		return ""
+	}
+	return "+7" + digits
 }
 
 // MakeMac - преобразует в строку вида 0A0B0C0D0E0F
