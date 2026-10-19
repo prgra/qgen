@@ -4,12 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/prgra/qgen/config"
 	"github.com/prgra/qgen/csv"
+	"github.com/prgra/qgen/gen"
 )
 
 type AbonIdent struct{}
@@ -212,6 +215,17 @@ type AbonIdentRow struct {
 	WifiMAC sql.NullString `db:"mac" csv:"wifi_mac"`
 	// Контактные телефоны для взаимодействия с абонентом.
 	ContactPhones string `db:"phone" csv:"contact_phones"`
+
+	// Служебные поля выборки, в CSV не выгружаются.
+	FIORaw     sql.NullString `db:"fio" csv:"-"`
+	SBirthDate string         `db:"_birth_date" csv:"-"`
+	City       sql.NullString `db:"city" csv:"-"`
+	Dist       sql.NullString `db:"dist" csv:"-"`
+	Country    sql.NullString `db:"country" csv:"-"`
+	RegZIP     sql.NullString `db:"zip" csv:"-"`
+	Street     sql.NullString `db:"street" csv:"-"`
+	House      sql.NullString `db:"house" csv:"-"`
+	Flat       sql.NullString `db:"flat" csv:"-"`
 }
 
 func (a *AbonIdent) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
@@ -235,7 +249,16 @@ pi.phone,
 pi.pasport_num as doc_number,
 pi.pasport_date as passport_issue_date,
 pi.pasport_grant as doc_issued_by,
-COALESCE(pi.pasport, CONCAT_WS(', ', pi.pasport_num, pi.pasport_date, pi.pasport_grant)) as passport_unstruct
+pi.pasport_num as passport_unstruct,
+pi.fio,
+pi._birth_date,
+pi.address_flat as flat,
+d.zip as zip,
+d.country as country,
+d.name as dist,
+d.city as city,
+s.name as street,
+b.number as house
 from
 users u
 JOIN dv_main dv ON dv.uid=u.uid
@@ -246,6 +269,7 @@ LEFT JOIN admin_actions aa2 on aa2.id = (select id from admin_actions
 LEFT JOIN users_pi pi ON pi.uid=u.uid
 LEFT JOIN builds b ON b.id=pi.location_id
 LEFT JOIN streets s ON s.id=b.street_id
+LEFT JOIN districts d ON d.id=s.district_id
 LEFT JOIN bills bi ON u.bill_id=bi.id
 LEFT JOIN companies c ON c.id=u.company_id
 LEFT JOIN dhcphosts_hosts dh ON dh.uid=u.uid
@@ -257,12 +281,14 @@ WHERE aa2.datetime >= ?`, dta)
 	for i := range abons {
 		abons[i].Calc(cfg)
 	}
-	r = csv.MarshalCSV(abons, ";", "")
+	// плоский формат v3: все поля в кавычках, строка заголовка не выгружается
+	r = csv.MarshalCSVNoHeader(abons, ";", "\"")
 	return r, nil
 }
 
 func (a *AbonIdent) GetFileName() string {
-	return fmt.Sprintf("ABONENT_IDENT_%s.txt", time.Now().Format("20060102_1504"))
+	// subscribers_v3_DDmmYYYYHHMMSS.txt по документации VAS Experts
+	return fmt.Sprintf("subscribers_v3_%s.txt", time.Now().Format("02012006150405"))
 }
 
 var passportNumberRe = regexp.MustCompile(`\D+`)
@@ -270,6 +296,7 @@ var phoneInputRe = regexp.MustCompile(`^\+?[0-9\s().-]+$`)
 
 func (a *AbonIdentRow) Calc(cfg config.Config) {
 	_ = cfg
+	a.sanitize()
 	if a.AbonType == 0 {
 		a.AbonType = 4
 	}
@@ -277,6 +304,9 @@ func (a *AbonIdentRow) Calc(cfg config.Config) {
 		a.Status = 1
 	}
 	a.ContactPhones = normalizePhone(a.ContactPhones)
+	a.splitFIO()
+	a.fillAddrs(cfg)
+	a.fillBirthDate()
 	if a.PassportIssueDate.Valid {
 		a.DocIssueDate = a.PassportIssueDate.Time
 	}
@@ -286,6 +316,7 @@ func (a *AbonIdentRow) Calc(cfg config.Config) {
 		a.DocSeries = passportNumber[:4]
 		a.DocNumber = passportNumber[4:]
 		a.PassportUnstruct = ""
+		a.DocType = "Паспорт РФ"
 	} else if a.DocNumber != "" || a.DocIssuedBy != "" || !a.DocIssueDate.IsZero() || a.PassportUnstruct != "" {
 		a.PassportDataType = 1
 		a.DocSeries = ""
@@ -294,6 +325,29 @@ func (a *AbonIdentRow) Calc(cfg config.Config) {
 		a.DocIssuedBy = ""
 	}
 	a.WifiMAC.String = MakeMac(a.WifiMAC.String)
+}
+
+// sanitize заменяет переводы строк пробелами во всех строковых полях строки
+// выгрузки: в плоском формате перенос внутри поля ломает построчный разбор.
+func (a *AbonIdentRow) sanitize() {
+	v := reflect.ValueOf(a).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		switch f := v.Field(i); f.Kind() {
+		case reflect.String:
+			f.SetString(cleanNewlines(f.String()))
+		case reflect.Struct:
+			if ns, ok := f.Addr().Interface().(*sql.NullString); ok && ns.Valid {
+				ns.String = cleanNewlines(ns.String)
+			}
+		}
+	}
+}
+
+func cleanNewlines(s string) string {
+	s = strings.ReplaceAll(s, "\r\n", " ")
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", " ")
+	return strings.TrimSpace(s)
 }
 
 func normalizePhone(phone string) string {
@@ -307,16 +361,109 @@ func normalizePhone(phone string) string {
 	if len(digits) != 10 {
 		return ""
 	}
-	return "+7" + digits
+	// по примеру из доки v3 телефоны выгружаются без плюса: 79211112233
+	return "7" + digits
 }
 
-// MakeMac - преобразует в строку вида 0A0B0C0D0E0F
+// splitFIO разбирает ФИО одной строкой "Фамилия Имя Отчество" на части.
+func (a *AbonIdentRow) splitFIO() {
+	parts := strings.Fields(a.FIORaw.String)
+	switch {
+	case len(parts) == 0:
+		return
+	case len(parts) == 1:
+		a.FIODataType = 1
+		a.FIOUnstructured = parts[0]
+	default:
+		a.FIODataType = 0
+		a.LastName = parts[0]
+		a.FirstName = parts[1]
+		a.MiddleName = strings.Join(parts[2:], " ")
+	}
+}
+
+// fillBirthDate парсит дату рождения из pi._birth_date (строка с произвольным форматом).
+func (a *AbonIdentRow) fillBirthDate() {
+	if a.SBirthDate == "" {
+		return
+	}
+	t, err := gen.ParseDateFromString(a.SBirthDate)
+	if err != nil {
+		fmt.Println("parse birth date", err, a.ID, a.SBirthDate)
+		return
+	}
+	a.BirthDate = t
+}
+
+// fillAddrs заполняет структурированные адрес регистрации и адрес установки.
+func (a *AbonIdentRow) fillAddrs(cfg config.Config) {
+	if a.City.String == "" && a.Dist.String == "" && a.Street.String == "" {
+		return
+	}
+	country := a.Country.String
+	if country == "" {
+		country = cfg.Country
+	}
+	// город: d.city, при отсутствии - d.name (район)
+	city := a.City.String
+	district := a.Dist.String
+	if city == "" && district != "" {
+		city = district
+		district = ""
+	}
+	house, corp := splitHouse(a.House.String)
+
+	// адрес регистрации (по паспорту / месту подключения)
+	a.RegAddrDataType = 0
+	a.RegAddrZIP = a.RegZIP.String
+	a.RegAddrCountry = country
+	a.RegAddrDistrict = district
+	a.RegAddrCity = city
+	a.RegAddrStreet = a.Street.String
+	a.RegAddrHouse = house
+	a.RegAddrBuilding = corp
+	a.RegAddrFlat = a.Flat.String
+	// адрес установки оборудования совпадает с адресом подключения
+	a.InstAddrDataType = a.RegAddrDataType
+	a.InstAddrZIP = a.RegAddrZIP
+	a.InstAddrCountry = a.RegAddrCountry
+	a.InstAddrDistrict = a.RegAddrDistrict
+	a.InstAddrCity = a.RegAddrCity
+	a.InstAddrStreet = a.RegAddrStreet
+	a.InstAddrHouse = a.RegAddrHouse
+	a.InstAddrBuilding = a.RegAddrBuilding
+	a.InstAddrFlat = a.RegAddrFlat
+}
+
+// splitHouse отделяет от номера дома корпус/литеру: "11А" -> "11", "А".
+func splitHouse(house string) (build, corp string) {
+	house = strings.TrimSpace(strings.ReplaceAll(house, `"`, ""))
+	if house == "" {
+		return "", ""
+	}
+	if m := houseCorpRe.FindStringSubmatch(house); m != nil {
+		return m[1], strings.ToUpper(m[2])
+	}
+	if m := houseCorpNumRe.FindStringSubmatch(house); m != nil {
+		return m[1], strings.ToUpper(strings.TrimSpace(m[3]))
+	}
+	return house, ""
+}
+
+var houseCorpRe = regexp.MustCompile(`(\d+)[ /-]?([а-яА-Я])$`)
+var houseCorpNumRe = regexp.MustCompile(`(\d+)(\D+)(\d+)`)
+
+// MakeMac - преобразует в строку вида 0A-0B-0C-0D-0E-0F
 func MakeMac(mac string) string {
 	pm, err := net.ParseMAC(mac)
 	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%0X", []byte(pm))
+	parts := make([]string, len(pm))
+	for i, b := range pm {
+		parts[i] = fmt.Sprintf("%02X", b)
+	}
+	return strings.Join(parts, "-")
 }
 
 // MakeIP - преобразует в строку вида 0A0B0C0D
