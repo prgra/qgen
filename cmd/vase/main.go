@@ -59,6 +59,7 @@ func main() {
 	t := time.Now()
 	var reports = []Report{
 		{&vase.AbonIdent{}, 1},
+		{&vase.Payments{}, 2},
 	}
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, cfg, db)
