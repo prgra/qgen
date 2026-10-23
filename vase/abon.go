@@ -226,6 +226,13 @@ type AbonIdentRow struct {
 	Street     sql.NullString `db:"street" csv:"-"`
 	House      sql.NullString `db:"house" csv:"-"`
 	Flat       sql.NullString `db:"flat" csv:"-"`
+	// юрлицо: u.company_id > 0, данные из companies
+	CompanyID   int            `db:"company_id" csv:"-"`
+	CompName    sql.NullString `db:"comp_name" csv:"-"`
+	CompINN     sql.NullString `db:"comp_inn" csv:"-"`
+	CompRepr    sql.NullString `db:"comp_repr" csv:"-"`
+	CompBank    sql.NullString `db:"comp_bank" csv:"-"`
+	CompAccount sql.NullString `db:"comp_account" csv:"-"`
 }
 
 func (a *AbonIdent) Render(db *sqlx.DB, cfg config.Config) (r []string, err error) { //
@@ -258,7 +265,13 @@ d.country as country,
 d.name as dist,
 d.city as city,
 s.name as street,
-b.number as house
+b.number as house,
+u.company_id,
+c.name as comp_name,
+c.tax_number as comp_inn,
+c.representative as comp_repr,
+c.bank_name as comp_bank,
+c.bank_account as comp_account
 from
 users u
 JOIN dv_main dv ON dv.uid=u.uid
@@ -278,12 +291,115 @@ WHERE aa2.datetime >= ?`, dta)
 	if err != nil {
 		return nil, err
 	}
+	// юрлицо выгружается строкой ЮЛ, следом - строка его оконечного пользователя
+	out := make([]AbonIdentRow, 0, len(abons))
 	for i := range abons {
 		abons[i].Calc(cfg)
+		if abons[i].CompanyID > 0 {
+			ul, eu := abons[i].splitCompany()
+			out = append(out, ul, eu)
+			continue
+		}
+		out = append(out, abons[i])
 	}
 	// плоский формат v3: все поля в кавычках, строка заголовка не выгружается
-	r = csv.MarshalCSVNoHeader(abons, ";", "\"")
+	r = csv.MarshalCSVNoHeader(out, ";", "\"")
 	return r, nil
+}
+
+// endUserID - ID оконечного пользователя юрлица: "<ID юрлица>_1".
+func endUserID(id string) string {
+	return id + "_1"
+}
+
+var ulNameCleaner = strings.NewReplacer(`"`, "", "«", "", "»", "", "“", "", "”", "")
+
+// splitCompany строит из абонента-юрлица (после Calc) строку ЮЛ и строку
+// оконечного пользователя - представителя юрлица.
+func (a *AbonIdentRow) splitCompany() (ul, eu AbonIdentRow) {
+	ul, eu = *a, *a
+
+	// юридическое лицо: ФИО и паспортные данные не заполняются
+	ul.AbonentType = 1
+	ul.clearPerson()
+	name := a.CompName.String
+	if name == "" {
+		name = a.FIORaw.String
+	}
+	// название ЮЛ без кавычек, например «ООО Ромашка»
+	ul.ULName = strings.Join(strings.Fields(ulNameCleaner.Replace(name)), " ")
+	ul.ULINN = passportNumberRe.ReplaceAllString(a.CompINN.String, "")
+	ul.ULContact = a.endUserFIO()
+	ul.ULContactPhones = a.ContactPhones
+	ul.ULBankName = a.CompBank.String
+	ul.ULBankAccount = a.CompAccount.String
+	ul.copyAddr("RegAddr", "BillAddr")
+
+	// оконечный пользователь: логин, договор, даты, адрес регистрации и
+	// доставки счёта как у юрлица, адрес точки подключения не выгружается
+	eu.ID = endUserID(a.ID)
+	eu.AbonentType = 2
+	if fio := a.endUserFIO(); fio != a.FIORaw.String {
+		eu.clearFIO()
+		eu.FIORaw = sql.NullString{String: fio, Valid: fio != ""}
+		eu.splitFIO()
+	}
+	eu.clearAddr("InstAddr")
+	eu.copyAddr("RegAddr", "BillAddr")
+	eu.WifiSSID = ""
+	eu.WifiMAC = sql.NullString{}
+	return ul, eu
+}
+
+// endUserFIO - ФИО представителя юрлица: companies.representative,
+// иначе ФИО из users_pi, если там не название организации.
+func (a *AbonIdentRow) endUserFIO() string {
+	if r := strings.TrimSpace(a.CompRepr.String); r != "" {
+		return r
+	}
+	if !gen.IsUrLico(a.FIORaw.String) {
+		return a.FIORaw.String
+	}
+	return ""
+}
+
+func (a *AbonIdentRow) clearFIO() {
+	a.FIODataType = 0
+	a.FirstName, a.MiddleName, a.LastName, a.FIOUnstructured = "", "", "", ""
+}
+
+func (a *AbonIdentRow) clearPerson() {
+	a.clearFIO()
+	a.BirthDate = time.Time{}
+	a.PassportDataType = 0
+	a.DocSeries, a.DocNumber, a.DocIssuedBy, a.PassportUnstruct, a.DocType = "", "", "", "", ""
+	a.DocIssueDate = time.Time{}
+}
+
+// copyAddr копирует адресный блок from* в to* (поля с одинаковыми суффиксами).
+func (a *AbonIdentRow) copyAddr(from, to string) {
+	v := reflect.ValueOf(a).Elem()
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		name := t.Field(i).Name
+		if !strings.HasPrefix(name, from) {
+			continue
+		}
+		if dst := v.FieldByName(to + strings.TrimPrefix(name, from)); dst.IsValid() {
+			dst.Set(v.Field(i))
+		}
+	}
+}
+
+// clearAddr очищает адресный блок prefix*.
+func (a *AbonIdentRow) clearAddr(prefix string) {
+	v := reflect.ValueOf(a).Elem()
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		if strings.HasPrefix(t.Field(i).Name, prefix) {
+			v.Field(i).Set(reflect.Zero(t.Field(i).Type))
+		}
+	}
 }
 
 func (a *AbonIdent) GetFileName() string {
@@ -303,6 +419,15 @@ func (a *AbonIdentRow) Calc(cfg config.Config) {
 	if a.Status != 0 {
 		a.Status = 1
 	}
+	// для активных абонентов дата расторжения - пустая строка;
+	// интервал актуальности равен интервалу действия договора
+	if a.Status == 0 {
+		a.ContractEndDate = time.Time{}
+	}
+	if !a.ContractDate.IsZero() {
+		a.ActualFrom = a.ContractDate
+	}
+	a.ActualTo = a.ContractEndDate
 	a.ContactPhones = normalizePhone(a.ContactPhones)
 	a.splitFIO()
 	a.fillAddrs(cfg)

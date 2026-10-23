@@ -59,7 +59,13 @@ func main() {
 	t := time.Now()
 	var reports = []Report{
 		{&vase.AbonIdent{}, 1},
+		{&vase.EndUsers{}, 7},
 		{&vase.Payments{}, 2},
+		{&vase.IPNets{}, 3},
+		{&vase.ServiceList{}, 5},
+		{&vase.Services{}, 6},
+		// бинд-файл нужен, только если абоненты авторизуются не через RADIUS
+		// {&vase.Binds{}, 4},
 	}
 	for _, r := range reports {
 		err = gen.WriteToFile(r.G, cfg, db)
